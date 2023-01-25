@@ -3,7 +3,7 @@
     "description": "Kirby3 plugin to manage responsive images settings using the panel.",
     "license": "MIT",
     "type": "kirby-plugin",
-    "version": "1.0.2",
+    "version": "1.0.333",
     "keywords": [
         "kirby3",
         "kirby-cms",
