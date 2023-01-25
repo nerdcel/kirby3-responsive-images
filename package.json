@@ -1,0 +1,17 @@
+{
+  "name": "kirby3-responsive-images",
+  "version": "1.0.0",
+  "description": "Responsive images panel for Kirby3",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx -y kirbyup src/index.js --watch",
+    "serve": "npx -y kirbyup serve src/index.js",
+    "build": "npx -y kirbyup src/index.js"
+  },
+  "devDependencies": {
+    "kirbyup": "latest"
+  },
+  "keywords": [],
+  "author": "Marcel Hieke",
+  "license": "MIT"
+}

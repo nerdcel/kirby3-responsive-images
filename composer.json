@@ -1,0 +1,34 @@
+{
+	"name": "getkirby/pluginkit",
+	"description": "Kirby Example Plugin",
+	"license": "MIT",
+	"type": "kirby-plugin",
+	"version": "1.0.0",
+    "homepage": "https://github.com/nerdcel/kirby3-responsive-images",
+	"authors": [
+		{
+			"name": "Marcel Hieke",
+			"email": "office@marcelhieke.com"
+		}
+	],
+	"require": {
+		"getkirby/composer-installer": "^1.2.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"Nerdcel\\ResponsiveImages\\": "src/Classes/"
+		},
+        "files": [
+            "src/helpers.php"
+        ]
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"allow-plugins": {
+			"getkirby/composer-installer": true
+		}
+	},
+    "extra": {
+        "installer-name": "kirby3-responsive-images"
+    }
+}
