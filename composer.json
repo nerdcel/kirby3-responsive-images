@@ -1,9 +1,9 @@
 {
-	"name": "getkirby/pluginkit",
-	"description": "Kirby Example Plugin",
+	"name": "nerdcel/kirby3-responsive-images",
+	"description": "Kirby3 plugin to manage responsive images settings using the panel.",
 	"license": "MIT",
 	"type": "kirby-plugin",
-	"version": "1.0.0",
+	"version": "1.0.1",
     "homepage": "https://github.com/nerdcel/kirby3-responsive-images",
 	"authors": [
 		{
@@ -12,8 +12,12 @@
 		}
 	],
 	"require": {
+        "php": ">= 8.0 < 8.2",
 		"getkirby/composer-installer": "^1.2.1"
 	},
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
 	"autoload": {
 		"psr-4": {
 			"Nerdcel\\ResponsiveImages\\": "src/Classes/"
