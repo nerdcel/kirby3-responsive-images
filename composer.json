@@ -4,6 +4,11 @@
 	"license": "MIT",
 	"type": "kirby-plugin",
 	"version": "1.0.1",
+    "tags": [
+        "kirby3",
+        "kirby-cms",
+        "kirby-plugin"
+    ],
     "homepage": "https://github.com/nerdcel/kirby3-responsive-images",
 	"authors": [
 		{
