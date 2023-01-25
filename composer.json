@@ -38,6 +38,6 @@
 		}
 	},
     "extra": {
-        "installer-name": "kirby3-responsive-images"
+        "installer-name": "responsive-images"
     }
 }

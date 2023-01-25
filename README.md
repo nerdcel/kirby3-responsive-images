@@ -10,12 +10,12 @@ To set the path and other options, please see the [Options](#options) section in
 
 ### Download
 
-Download and copy this repository to `/site/plugins/kirby3-responsive-images`.
+Download and copy this repository to `/site/plugins/responsive-images`.
 
 ### Git submodule
 
 ```
-git submodule add https://github.com/nerdcel/kirby3-responsive-images.git site/plugins/kirby3-responsive-images
+git submodule add https://github.com/nerdcel/kirby3-responsive-images.git site/plugins/responsive-images
 ```
 
 ### Composer
