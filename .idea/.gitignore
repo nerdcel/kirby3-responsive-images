@@ -1,0 +1,11 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+dbnavigator.xml
+kirby3-responsive-images.iml
+markdown.xml
+modules.xml
+php.xml
+vcs.xml

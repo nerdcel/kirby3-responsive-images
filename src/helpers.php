@@ -5,7 +5,7 @@ use Nerdcel\ResponsiveImages\ResponsiveImages;
 
 if (!function_exists('responsiveImage')) {
     /**
-     * Creates a responsive image baed on slug from a kirby file
+     * Creates a responsive image based on slug from a kirby file
      *
      * @param string $responsiveImageSlug
      * @param File $file
@@ -13,12 +13,12 @@ if (!function_exists('responsiveImage')) {
      *
      * @return void
      */
-    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null): void
+    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null): string
     {
         try {
-            echo ResponsiveImages::getInstance()->makeResponsiveImage($responsiveImageSlug, $file, $classes);
+            return ResponsiveImages::getInstance()->makeResponsiveImage($responsiveImageSlug, $file, $classes);
         } catch (JsonException|\Kirby\Exception\InvalidArgumentException $e) {
-            echo '';
+            return '';
         }
     }
 }
