@@ -99,6 +99,9 @@ class Tag
         $widthRetina = (int) ((isset($config['width']) && ! empty($config['width']) ? $config['width'] : $this->config['defaultWidth']) * $this->retinaDensity);
         $heightRetina = (int) (isset($config['height']) && !empty($config['height']) ? $config['height'] * $this->retinaDensity : ($this->resource->dimensions()->height() / $this->resource->dimensions()->width()) * $widthRetina);
 
+        $cropWidth = $config['cropwidth'] && $config['width'] ?? false;
+        $cropHeight = $config['cropheight'] && $config['height'] ?? false;
+
         $return = [
             'width' => '',
             'height' => '',
@@ -106,7 +109,7 @@ class Tag
             'heightRetina' => '',
         ];
 
-        if ($config['cropwidth'] && !$config['cropheight']) {
+        if ($cropWidth && !$cropHeight) {
             $image = $this->resource->crop($width, $this->resource->dimensions()->height(), ['crop' => true]);
             // $image = $image->resize($width, $height, $this->config['quality']);
             $return['width'] = $width;
@@ -120,7 +123,7 @@ class Tag
             }
         }
 
-        if (!$config['cropwidth'] && $config['cropheight']) {
+        if (!$cropWidth && $cropHeight) {
             $image = $this->resource->crop($this->resource->dimensions()->width(), $height, ['crop' => true]);
             $return['width'] = $this->resource->dimensions()->width();
             $return['height'] = $height;
@@ -132,7 +135,7 @@ class Tag
             }
         }
 
-        if ($config['cropwidth'] && $config['cropheight']) {
+        if ($cropWidth && $cropHeight) {
             $image = $this->resource->crop($width, $height, [
                 'crop' => true
             ]);
@@ -144,7 +147,7 @@ class Tag
             }
         }
 
-        if (!$config['cropwidth'] && !$config['cropheight']) {
+        if (!$cropWidth && !$cropHeight) {
             $image = $this->resource->resize($width, $height, $this->config['quality']);
             $return['width'] = $width;
             $return['height'] = $height;
