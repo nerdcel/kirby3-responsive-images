@@ -131,6 +131,6 @@ class ResponsiveImages
             }
         }
 
-        return '<img src="'.$file->resize($this->config['defaultWidth'])->url().'" class="'.$classes.'" ' . $lazy ? "loading='lazy'" : null . ' />';
+        return '<img src="'.$file->resize($this->config['defaultWidth'])->url().'" class="'.$classes.'" ' . ($lazy ? "loading=\"lazy\"" : null) . '/>';
     }
 }

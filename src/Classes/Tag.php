@@ -58,7 +58,7 @@ class Tag
     function addImg(array $config, $lazy): void
     {
         $imgSet = $this->adjust($config, false);
-        $this->img = '<img src="' . $imgSet['image']->url() . '" width="' . $imgSet['image']->width() . '" height="' . $imgSet['image']->height() . '" class="' . $this->classes . '" alt="' . $imgSet['image']->alt() . '" title="' . $imgSet['image']->alt() . '"' . $lazy ? " loading='lazy'" : null . ' />';
+        $this->img = '<img src="' . $imgSet['image']->url() . '" width="' . $imgSet['image']->width() . '" height="' . $imgSet['image']->height() . '" class="' . $this->classes . '" alt="' . $imgSet['image']->alt() . '" title="' . $imgSet['image']->alt() . '"' . "loading=\"lazy\"" . '/>';
     }
 
     /**
