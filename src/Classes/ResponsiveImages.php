@@ -86,7 +86,7 @@ class ResponsiveImages
      * @throws JsonException
      * @throws Exception
      */
-    public function makeResponsiveImage(string $slug, File $file, string $classes = null): string
+    public function makeResponsiveImage(string $slug, File $file, string $classes = null, $lazy = false): string
     {
         if (! $this->settings) {
             $this->settings = json_decode($this->getConfig(), true, 512, JSON_THROW_ON_ERROR);
@@ -122,7 +122,7 @@ class ResponsiveImages
                         $RI->addSource($value);
                     }
 
-                    $RI->addImg(array_pop($setting['breakpointoptions']));
+                    $RI->addImg(array_pop($setting['breakpointoptions']), $lazy);
                     $imgCache = $RI->writeTag();
                     $cache->set($cacheKey, $imgCache);
                 }
@@ -131,6 +131,6 @@ class ResponsiveImages
             }
         }
 
-        return '<img src="'.$file->resize($this->config['defaultWidth'])->url().'" class="'.$classes.'" />';
+        return '<img src="'.$file->resize($this->config['defaultWidth'])->url().'" class="'.$classes.'" ' . $lazy ? "loading='lazy'" : null . ' />';
     }
 }

@@ -55,10 +55,10 @@ class Tag
      * @param array $config
      * @return void
      */
-    function addImg(array $config): void
+    function addImg(array $config, $lazy): void
     {
         $imgSet = $this->adjust($config, false);
-        $this->img = '<img src="' . $imgSet['image']->url() . '" width="' . $imgSet['image']->width() . '" height="' . $imgSet['image']->height() . '" class="' . $this->classes . '" alt="' . $imgSet['image']->alt() . '" title="' . $imgSet['image']->alt() . '" />';
+        $this->img = '<img src="' . $imgSet['image']->url() . '" width="' . $imgSet['image']->width() . '" height="' . $imgSet['image']->height() . '" class="' . $this->classes . '" alt="' . $imgSet['image']->alt() . '" title="' . $imgSet['image']->alt() . '"' . $lazy ? " loading='lazy'" : null . ' />';
     }
 
     /**
