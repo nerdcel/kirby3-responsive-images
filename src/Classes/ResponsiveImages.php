@@ -86,7 +86,7 @@ class ResponsiveImages
      * @throws JsonException
      * @throws Exception
      */
-    public function makeResponsiveImage(string $slug, File $file, string $classes = null, $lazy = false): string
+    public function makeResponsiveImage(string $slug, File $file, string $classes = null, $lazy = false, $alt = null): string
     {
         if (! $this->settings) {
             $this->settings = json_decode($this->getConfig(), true, 512, JSON_THROW_ON_ERROR);
@@ -116,7 +116,7 @@ class ResponsiveImages
                 $imgCache = $cacheKey ? $cache->get($cacheKey) : null;
 
                 if ($imgCache === null) {
-                    $RI = new Tag($file, $this->config, $this->settings['breakpoints'], $classes);
+                    $RI = new Tag($file, $this->config, $this->settings['breakpoints'], $classes, $alt);
 
                     foreach ($setting['breakpointoptions'] as $value) {
                         $RI->addSource($value);

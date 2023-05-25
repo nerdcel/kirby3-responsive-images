@@ -13,10 +13,10 @@ if (!function_exists('responsiveImage')) {
      *
      * @return void
      */
-    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null, $lazy = false): string
+    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null, $lazy = false, $alt = null): string
     {
         try {
-            return ResponsiveImages::getInstance()->makeResponsiveImage($responsiveImageSlug, $file, $classes, $lazy);
+            return ResponsiveImages::getInstance()->makeResponsiveImage($responsiveImageSlug, $file, $classes, $lazy, $alt);
         } catch (JsonException|\Kirby\Exception\InvalidArgumentException $e) {
             return '';
         }
