@@ -13,7 +13,6 @@ class Tag
     private string $img;
     private float $retinaDensity = 1.5;
     private ?string $classes;
-
     private ?string $alt;
 
     public function __construct(File $file, array $config, array $breakpoints, string $classes = null, $alt = null)
@@ -56,14 +55,15 @@ class Tag
      * Add image tag
      *
      * @param array $config
-     * @param boolean $lazy
+     * @param  boolean  $lazy
+     *
      * @return void
      */
-    function addImg(array $config, $lazy): void
+    function addImg(array $config, bool $lazy): void
     {
         $lazyOption = $lazy ? 'lazy' : 'eager';
         $imgSet = $this->adjust($config, false);
-        $this->img = '<img src="' . $imgSet['image']->url() . '" width="' . $imgSet['image']->width() . '" height="' . $imgSet['image']->height() . '" class="' . $this->classes . '" alt="' . $this->alt ?? $imgSet['image']->alt() . '" title="' . $this->alt ?? $imgSet['image']->alt() . '"' . "loading=\"$lazyOption\"" . '/>';
+        $this->img = '<img src="' . $imgSet['image']->url() . '" width="' . $imgSet['image']->width() . '" height="' . $imgSet['image']->height() . '" class="' . $this->classes . '" alt="' . ($this->alt ?: $imgSet['image']->alt()) . '" title="' . ($this->alt ?: $imgSet['image']->alt()) . '" loading="' . $lazyOption . '"/>';
     }
 
     /**
