@@ -108,7 +108,7 @@ class ResponsiveImages
                 try {
                     $cacheKey = md5($file->hash().base64_encode(json_encode($setting['breakpointoptions'],
                             JSON_THROW_ON_ERROR)).base64_encode(json_encode($this->settings['breakpoints'],
-                                JSON_THROW_ON_ERROR).$classes));
+                                JSON_THROW_ON_ERROR).$classes).$slug.$classes.$lazy.$alt);
                 } catch (JsonException) {
                     $cacheKey = null;
                 }
