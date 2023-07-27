@@ -173,6 +173,8 @@ export default {
             width: {
               type: 'number',
               label: 'Width',
+              min: 0,
+              step: 1,
               default: null,
               after: 'px',
             },
@@ -184,6 +186,8 @@ export default {
             height: {
               type: 'number',
               label: 'Height',
+              min: 0,
+              step: 1,
               default: null,
               after: 'px',
             },
