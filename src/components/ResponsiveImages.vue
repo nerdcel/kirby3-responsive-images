@@ -37,11 +37,10 @@
               :required="true"
               :label="$t('nerdcel.responsive-images.settings')"
               name="responsivesettings"
-              :help="$t('nerdcel.responsive-images.info')"
               :fields="fields"
               :endpoints="endpoints"
               v-model="responsivesettingsModel"
-              :duplicate="false"
+              :duplicate="true"
               @input="input"
             >
             </k-structure-field>
