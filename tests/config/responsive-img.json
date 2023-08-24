@@ -1,0 +1,37 @@
+{
+  "breakpoints": [
+    {
+      "mediaquery": "min-width",
+      "name": "xxs",
+      "width": 0
+    },
+    {
+      "mediaquery": "min-width",
+      "name": "xs",
+      "width": 480
+    }
+  ],
+  "settings": [
+    {
+      "name": "test",
+      "breakpointoptions": [
+        {
+          "breakpoint": "xxs",
+          "width": 360,
+          "cropwidth": false,
+          "height": 258,
+          "cropheight": false,
+          "retina": true
+        },
+        {
+          "breakpoint": "xs",
+          "width": 954,
+          "cropwidth": 0,
+          "height": 682,
+          "cropheight": 0,
+          "retina": true
+        }
+      ]
+    }
+  ]
+}

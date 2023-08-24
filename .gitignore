@@ -1,6 +1,9 @@
 # OS files
 .DS_Store
 
+#unittests
+/tests/kirby/*
+
 # npm modules
 /node_modules
 
@@ -25,3 +28,4 @@
 /vendor/**/php4/*
 /vendor/getkirby/composer-installer
 /.idea/git_toolbox_prj.xml
+/vendor

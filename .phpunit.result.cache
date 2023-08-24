@@ -1,0 +1,1 @@
+{"version":1,"defects":{"ResponsiveImageTest::testCanBeCreatedFromPng":8,"ResponsiveImageTest::testCanBeCreatedFromPngWithConfig":8},"times":{"ResponsiveImageTest::testCanBeCreatedFromPng":0.003,"ResponsiveImageTest::testCanBeCreatedFromPngWithConfig":0.264}}

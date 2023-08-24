@@ -22,7 +22,9 @@
         "getkirby/composer-installer": "^1.2.1"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest"
+        "roave/security-advisories": "dev-latest",
+        "phpunit/phpunit": "^10",
+        "getkirby/cms": "^3.9"
     },
     "autoload": {
         "psr-4": {
@@ -30,6 +32,9 @@
         },
         "files": [
             "src/helpers.php"
+        ],
+        "classmap": [
+            "src/Classes"
         ]
     },
     "config": {
@@ -39,6 +44,7 @@
         }
     },
     "extra": {
-        "installer-name": "responsive-images"
+        "installer-name": "responsive-images",
+        "kirby-cms-path": false
     }
 }

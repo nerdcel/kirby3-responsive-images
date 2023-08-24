@@ -30,17 +30,21 @@ class ResponsiveImages
         return static::$instance;
     }
 
-    public function __construct()
+    public function __construct(array $config = null)
     {
-        $this->config = Config::get('nerdcel.responsive-images', [
-            'configPath' => kirby()->root('content'),
-            'configFile' => 'responsive-img.json',
-            'quality' => 75,
-            'defaultWidth' => 1024,
-            'allowedRoles' => [
-                'admin',
-            ],
-        ]);
+        if ($config) {
+            $this->config = $config;
+        } else {
+            $this->config = Config::get('nerdcel.responsive-images', [
+                'configPath' => kirby()->root('content'),
+                'configFile' => 'responsive-img.json',
+                'quality' => 75,
+                'defaultWidth' => 1024,
+                'allowedRoles' => [
+                    'admin',
+                ],
+            ]);
+        }
 
         try {
             $this->default = json_encode(['breakpoints' => [], 'settings' => []], JSON_THROW_ON_ERROR);
@@ -82,12 +86,26 @@ class ResponsiveImages
     }
 
     /**
-     * @throws InvalidArgumentException
+     * Make responsive image
+     *
+     * @param  string  $slug
+     * @param  File  $file
+     * @param  string|null  $classes
+     * @param  bool  $lazy
+     * @param  string|null  $alt
+     * @param  string|null  $imageType
+     *
+     * @return string
      * @throws JsonException
-     * @throws Exception
      */
-    public function makeResponsiveImage(string $slug, File $file, string $classes = null, $lazy = false, $alt = null): string
-    {
+    public function makeResponsiveImage(
+        string $slug,
+        File $file,
+        string $classes = null,
+        bool $lazy = false,
+        string $alt = null,
+        string $imageType = null
+    ): string {
         if (! $this->settings) {
             $this->settings = json_decode($this->getConfig(), true, 512, JSON_THROW_ON_ERROR);
         }
@@ -119,10 +137,10 @@ class ResponsiveImages
                     $RI = new Tag($file, $this->config, $this->settings['breakpoints'], $classes, $alt);
 
                     foreach ($setting['breakpointoptions'] as $value) {
-                        $RI->addSource($value);
+                        $RI->addSource($value, $imageType);
                     }
 
-                    $RI->addImg(array_pop($setting['breakpointoptions']), $lazy);
+                    $RI->addImg(array_pop($setting['breakpointoptions']), $lazy, $imageType);
                     $imgCache = $RI->writeTag();
                     $cache->set($cacheKey, $imgCache);
                 }
@@ -131,6 +149,8 @@ class ResponsiveImages
             }
         }
 
-        return '<img src="'.$file->resize($this->config['defaultWidth'])->url().'" class="'.$classes.'" ' . ($lazy ? "loading=\"lazy\"" : null) . '/>';
+        return '<img src="'.$file->thumb([
+                'width' => $this->config['defaultWidth'], 'crop' => false, 'format' => $imageType ?? null,
+            ])->url().'" class="'.$classes.'" '.($lazy ? "loading=\"lazy\"" : null).'/>';
     }
 }
