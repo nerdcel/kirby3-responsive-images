@@ -3,6 +3,7 @@
 
 #unittests
 /tests/kirby/*
+.phpunit.result.cache
 
 # npm modules
 /node_modules

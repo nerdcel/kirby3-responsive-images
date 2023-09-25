@@ -17,4 +17,8 @@ Kirby::plugin('nerdcel/responsive-images', [
     'api' => [
         'routes' => require 'src/routes.php'
     ],
+
+    'permissions' => [
+        'access' => true
+    ]
 ]);

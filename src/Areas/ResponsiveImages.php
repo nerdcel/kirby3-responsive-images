@@ -4,10 +4,17 @@ use Kirby\Toolkit\I18n;
 use Nerdcel\ResponsiveImages\ResponsiveImages;
 
 return function () {
+    try {
+        $accessPermission = ResponsiveImages::getInstance()->hasPermission('access');
+    } catch (LogicException $e) {
+        // area was loaded by Kirby without a logged-in user
+        $accessPermission = false;
+    }
+
     return [
         'label' => I18n::translate('nerdcel.responsive-images.panel.label'),
         'icon' => 'image',
-        'menu' => true,
+        'menu' => $accessPermission,
         'link' => 'responsiveimages',
         'views' => [
             [

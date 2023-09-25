@@ -4,10 +4,12 @@ namespace Nerdcel\ResponsiveImages;
 
 use Exception;
 use JsonException;
+use Kirby\Cms\App;
 use Kirby\Cms\File;
-use Kirby\Exception\InvalidArgumentException;
+use Kirby\Exception\PermissionException;
 use Kirby\Toolkit\Config;
 use Kirby\Filesystem\F;
+use Kirby\Exception\LogicException;
 
 class ResponsiveImages
 {
@@ -16,22 +18,34 @@ class ResponsiveImages
     public string $configFilePath = '';
     public string $default = '';
 
+    /**
+     * Kirby App instance
+     *
+     * @var \Kirby\Cms\App
+     */
+    protected $kirby;
+
     protected static $instance;
 
     /**
      * gets the instance via lazy initialization (created on first usage)
      */
-    public static function getInstance(): ResponsiveImages
+    public static function getInstance(?array $config = null, ?App $kirby = null): self
     {
-        if (static::$instance === null) {
-            static::$instance = new static();
+        if (
+            self::$instance !== null &&
+            ($kirby === null || self::$instance->kirby() === $kirby)
+        ) {
+            return self::$instance;
         }
 
-        return static::$instance;
+        return self::$instance = new self($config, $kirby);
     }
 
-    public function __construct(array $config = null)
+    public function __construct(?array $config = null, ?App $kirby = null)
     {
+        $this->kirby = $kirby ?? App::instance();
+
         if ($config) {
             $this->config = $config;
         } else {
@@ -53,6 +67,43 @@ class ResponsiveImages
         }
 
         $this->configFilePath = $this->config['configPath'].'/'.$this->config['configFile'];
+    }
+
+
+    /**
+     * Ensures that the current user has the specified permission
+     *
+     * @param  string  $permission
+     *
+     * @return void
+     *
+     * @throws LogicException If no user is logged in
+     * @throws PermissionException If the user does not have the required permission
+     */
+    public function checkPermission(string $permission): void
+    {
+        if ($this->hasPermission($permission) !== true) {
+            throw new PermissionException([
+                'key' => 'responsive-images.permission',
+                'data' => compact('permission'),
+            ]);
+        }
+    }
+
+    /**
+     * @throws LogicException
+     */
+    public function hasPermission(string $permission): bool
+    {
+        $user = $this->kirby->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        $permissions = $user->role()->permissions();
+
+        return $permissions->for('nerdcel.responsive-images', $permission);
     }
 
     /**
