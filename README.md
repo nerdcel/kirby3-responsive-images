@@ -31,7 +31,7 @@ composer require nerdcel/kirby3-responsive-images
 ### Template
 
 ```php
-<?php responsiveImage('teaser-home-cover',$page->cover(), 'optional-css-class');  ?>
+<?php responsiveImage(string 'teaser-home-cover', File $page->cover(), string 'optional-css-class', bool true, string 'Alt text', string 'webp');  ?>
 ```
 
 ### Output
@@ -63,8 +63,29 @@ The following options are available to be set using your site/config/config.php
     'defaultWidth' => 1024,
     'allowedRoles' => [
         'admin'
-    ]
+    ],
+    'cropDriver' => function ($file, $options) {
+        return $file->focusCrop(
+            $options['width'],
+            $options['height'],
+            [
+                'quality' => $options['quality'],
+                'upscale' => $options['upscale'],
+                'format' => $options['format'],
+            ]
+        );
+    }
 ]
+```
+
+### Image driver
+In favor of the upcoming Kirby 4 release, the "crop" driver is now a callback function. This allows you to use any cropping driver you want.
+For example if you are using the flokosiol/kirby-focus plugin, you can use the driver shown above.
+In general the driver expects a callback function with the following signature:
+```php
+function (File $file, array $options) {
+    // do something with the file and return it
+}
 ```
 
 ## Development

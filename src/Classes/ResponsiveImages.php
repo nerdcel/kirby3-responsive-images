@@ -200,7 +200,7 @@ class ResponsiveImages
             }
         }
 
-        return '<img src="'.$file->thumb([
+        return '<img src="'.Cropper::crop($file, [
                 'width' => $this->config['defaultWidth'], 'crop' => false, 'format' => $imageType ?? null,
             ])->url().'" class="'.$classes.'" '.($lazy ? "loading=\"lazy\"" : null).'/>';
     }

@@ -3,6 +3,7 @@
 namespace Nerdcel\ResponsiveImages;
 
 use Kirby\Cms\File;
+use Nerdcel\ResponsiveImages\Cropper;
 
 class Tag
 {
@@ -126,22 +127,23 @@ class Tag
 
         if ($cropWidth && ! $cropHeight) {
             $originalHeight = $this->resource->dimensions()->height();
-            $image = $this->resource->thumb([
-                'width' => $width,
-                'height' => $originalHeight,
-                'crop' => true,
-                'format' => $imageType ?? null]
+            $image = Cropper::crop($this->resource, [
+                    'width' => $width,
+                    'height' => $originalHeight,
+                    'crop' => true,
+                    'format' => $imageType ?? null,
+                ]
             );
             $return['width'] = $width;
             $return['height'] = $originalHeight;
 
             if ($retina) {
                 $originalRetinaHeight = $this->resource->dimensions()->height() * $this->retinaDensity;
-                $imageRetina = $this->resource->thumb([
+                $imageRetina = Cropper::crop($this->resource, [
                     'width' => $widthRetina,
                     'height' => $originalRetinaHeight,
                     'crop' => true,
-                    'format' => $imageType ?? null
+                    'format' => $imageType ?? null,
                 ]);
                 $return['widthRetina'] = $widthRetina;
                 $return['heightRetina'] = $originalRetinaHeight;
@@ -150,7 +152,7 @@ class Tag
 
         if (! $cropWidth && $cropHeight) {
             $originalWidth = $this->resource->dimensions()->width();
-            $image = $this->resource->thumb([
+            $image = Cropper::crop($this->resource, [
                 'width' => $originalWidth,
                 'height' => $height,
                 'crop' => true,
@@ -161,7 +163,7 @@ class Tag
 
             if ($retina) {
                 $originalRetinaWidth = $this->resource->dimensions()->width() * $this->retinaDensity;
-                $imageRetina = $this->resource->thumb([
+                $imageRetina = Cropper::crop($this->resource, [
                     'width' => $originalRetinaWidth,
                     'height' => $heightRetina,
                     'crop' => true,
@@ -173,7 +175,7 @@ class Tag
         }
 
         if ($cropWidth && $cropHeight) {
-            $image = $this->resource->thumb([
+            $image = Cropper::crop($this->resource, [
                 'width' => $width,
                 'height' => $height,
                 'crop' => true,
@@ -181,11 +183,11 @@ class Tag
             ]);
 
             if ($retina) {
-                $imageRetina = $this->resource->thumb([
+                $imageRetina = Cropper::crop($this->resource, [
                     'width' => $widthRetina,
                     'height' => $heightRetina,
                     'crop' => true,
-                    'format' => $imageType ?? null
+                    'format' => $imageType ?? null,
                 ]);
                 $return['widthRetina'] = $widthRetina;
                 $return['heightRetina'] = $heightRetina;
@@ -193,7 +195,7 @@ class Tag
         }
 
         if (! $cropWidth && ! $cropHeight) {
-            $image = $this->resource->thumb([
+            $image = Cropper::crop($this->resource, [
                 'width' => $width,
                 'height' => $height,
                 'crop' => false,
@@ -204,7 +206,7 @@ class Tag
             $return['height'] = $height;
 
             if ($retina) {
-                $imageRetina = $this->resource->thumb([
+                $imageRetina = Cropper::crop($this->resource, [
                     'width' => $widthRetina,
                     'height' => $heightRetina,
                     'crop' => false,

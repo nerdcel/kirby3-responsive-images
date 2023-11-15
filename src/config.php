@@ -9,4 +9,5 @@ return [
     'allowedRoles' => [
         'admin',
     ],
+    'cropDriver' => null
 ];

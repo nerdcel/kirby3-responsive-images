@@ -3,6 +3,9 @@
     "description": "Kirby3 plugin to manage responsive images settings using the panel.",
     "license": "MIT",
     "type": "kirby-plugin",
+    "scripts": {
+        "test": "phpunit tests --process-isolation"
+    },
     "keywords": [
         "kirby3",
         "kirby-cms",
