@@ -102,6 +102,25 @@ class Tag
     }
 
     /**
+     * Get focus point from resource
+     * Use focus or focalpoints breakpoints
+     *
+     * @return bool|string
+     */
+    private function getFocus($config)
+    {
+        $focalPoints = $this->resource->focalpoints()->toBreakpointFocal();
+
+        if ($config && isset($config['breakpoint'])) {
+            $focus = $focalPoints[$config['breakpoint']] ?? true;
+        } else {
+            $focus = $this->resource->focus()->isNotEmpty() ? $this->resource->focus()->value() : true;
+        }
+
+        return $focus ?? true;
+    }
+
+    /**
      * @param  array  $config
      * @param  bool  $retina
      * @param  string|null  $imageType
@@ -127,11 +146,12 @@ class Tag
 
         if ($cropWidth && ! $cropHeight) {
             $originalHeight = $this->resource->dimensions()->height();
-            $image = Cropper::crop($this->resource, [
+            $image = $this->resource->thumb([
                     'width' => $width,
                     'height' => $originalHeight,
-                    'crop' => true,
+                    'crop' => $this->getFocus($config),
                     'format' => $imageType ?? null,
+
                 ]
             );
             $return['width'] = $width;
@@ -139,10 +159,10 @@ class Tag
 
             if ($retina) {
                 $originalRetinaHeight = $this->resource->dimensions()->height() * $this->retinaDensity;
-                $imageRetina = Cropper::crop($this->resource, [
+                $imageRetina = $this->resource->thumb([
                     'width' => $widthRetina,
                     'height' => $originalRetinaHeight,
-                    'crop' => true,
+                    'crop' => $this->getFocus($config),
                     'format' => $imageType ?? null,
                 ]);
                 $return['widthRetina'] = $widthRetina;
@@ -152,10 +172,10 @@ class Tag
 
         if (! $cropWidth && $cropHeight) {
             $originalWidth = $this->resource->dimensions()->width();
-            $image = Cropper::crop($this->resource, [
+            $image = $this->resource->thumb([
                 'width' => $originalWidth,
                 'height' => $height,
-                'crop' => true,
+                'crop' => $this->getFocus($config),
                 'format' => $imageType ?? null,
             ]);
             $return['width'] = $originalWidth;
@@ -163,10 +183,10 @@ class Tag
 
             if ($retina) {
                 $originalRetinaWidth = $this->resource->dimensions()->width() * $this->retinaDensity;
-                $imageRetina = Cropper::crop($this->resource, [
+                $imageRetina = $this->resource->thumb([
                     'width' => $originalRetinaWidth,
                     'height' => $heightRetina,
-                    'crop' => true,
+                    'crop' => $this->getFocus($config),
                     'format' => $imageType ?? null,
                 ]);
                 $return['widthRetina'] = $originalRetinaWidth;
@@ -175,18 +195,18 @@ class Tag
         }
 
         if ($cropWidth && $cropHeight) {
-            $image = Cropper::crop($this->resource, [
+            $image = $this->resource->thumb([
                 'width' => $width,
                 'height' => $height,
-                'crop' => true,
+                'crop' => $this->getFocus($config),
                 'format' => $imageType ?? null,
             ]);
 
             if ($retina) {
-                $imageRetina = Cropper::crop($this->resource, [
+                $imageRetina = $this->resource->thumb([
                     'width' => $widthRetina,
                     'height' => $heightRetina,
-                    'crop' => true,
+                    'crop' => $this->getFocus($config),
                     'format' => $imageType ?? null,
                 ]);
                 $return['widthRetina'] = $widthRetina;
@@ -195,7 +215,7 @@ class Tag
         }
 
         if (! $cropWidth && ! $cropHeight) {
-            $image = Cropper::crop($this->resource, [
+            $image = $this->resource->thumb([
                 'width' => $width,
                 'height' => $height,
                 'crop' => false,
@@ -206,7 +226,7 @@ class Tag
             $return['height'] = $height;
 
             if ($retina) {
-                $imageRetina = Cropper::crop($this->resource, [
+                $imageRetina = $this->resource->thumb([
                     'width' => $widthRetina,
                     'height' => $heightRetina,
                     'crop' => false,

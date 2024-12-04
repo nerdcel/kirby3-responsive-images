@@ -5,13 +5,21 @@ use Nerdcel\ResponsiveImages\ResponsiveImages;
 $config = ResponsiveImages::getInstance()->loadConfig();
 
 return [
+    'model' => [
+
+    ],
+
     'props' => [
         'focalpoints' => function () {
             return $this->focalpoints();
         },
 
         'label' => function () {
-            return $this->label() ?? I18n::translate('nerdcel.responsive-images.field.set-focal-point');
+            return $this->label() ?? I18n::translate('nerdcel.responsive-images.field.label.set-focal-point');
+        },
+
+        'help' => function () {
+            return $this->help() ?? I18n::translate('nerdcel.responsive-images.field.help.set-focal-point');
         },
 
         'fieldModel' => function () {
@@ -30,7 +38,7 @@ return [
             if (is_array($value)) {
                 return $value;
             }
-            return Data::decode($value, 'yaml');
+            return $this->model()->focalpoints()->toBreakpointFocal();
         },
     ],
 ];
