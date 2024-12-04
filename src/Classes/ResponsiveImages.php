@@ -124,6 +124,37 @@ class ResponsiveImages
     }
 
     /**
+     * Load config
+     * @return array|mixed
+     */
+    public function loadConfig()
+    {
+        try {
+            $responsiveImagesConfig = $this->getConfig();
+
+            try {
+                $json = json_decode($responsiveImagesConfig, false, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $json = [];
+            }
+
+            if (! isset($json->breakpoints, $json->settings)) {
+                $responsiveImagesConfig = $this->default;
+            }
+
+            try {
+                $config = json_decode($responsiveImagesConfig, false, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                $config = [];
+            }
+
+            return $config;
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
      * Write config string to file
      *
      * @param  string  $config
