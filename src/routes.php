@@ -16,7 +16,7 @@ return [
 
                 $json = json_encode($fields, JSON_THROW_ON_ERROR);
 
-                ResponsiveImages::getInstance()->writeConfig($json);
+                (new ResponsiveImages(kirby()))->writeConfig($json);
 
                 return Response::json($json, 200);
             } catch (\Exception $e) {

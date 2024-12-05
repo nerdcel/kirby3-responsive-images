@@ -2,7 +2,7 @@
 
 use Nerdcel\ResponsiveImages\ResponsiveImages;
 
-$config = ResponsiveImages::getInstance()->loadConfig();
+$config = (new ResponsiveImages(kirby()))->loadConfig();
 
 return [
     'model' => [

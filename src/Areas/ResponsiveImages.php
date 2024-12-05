@@ -5,7 +5,7 @@ use Nerdcel\ResponsiveImages\ResponsiveImages;
 
 return function () {
     try {
-        $accessPermission = ResponsiveImages::getInstance()->hasPermission('access');
+        $accessPermission = (new ResponsiveImages(kirby()))->hasPermission('access');
     } catch (LogicException $e) {
         // area was loaded by Kirby without a logged-in user
         $accessPermission = false;
@@ -29,7 +29,7 @@ return function () {
                         ];
                     }
 
-                    $config = ResponsiveImages::getInstance()->loadConfig();
+                    $config = (new ResponsiveImages(kirby()))->loadConfig();
 
                     return [
                         'component' => 'nerdcel-responsive-images',
@@ -129,10 +129,10 @@ return function () {
                                                     'type' => 'select',
                                                     'options' => array_map(function ($breakpoint) {
                                                         return [
-                                                            'value' => $breakpoint->name,
-                                                            'text' => $breakpoint->name,
+                                                            'value' => $breakpoint['name'],
+                                                            'text' => $breakpoint['name'],
                                                         ];
-                                                    }, $config->breakpoints),
+                                                    }, $config['breakpoints']),
                                                 ],
                                                 'width' => [
                                                     'label' => 'Width',
