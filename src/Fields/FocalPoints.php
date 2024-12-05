@@ -2,13 +2,7 @@
 
 use Nerdcel\ResponsiveImages\ResponsiveImages;
 
-$config = (new ResponsiveImages(kirby()))->loadConfig();
-
 return [
-    'model' => [
-
-    ],
-
     'props' => [
         'focalpoints' => function () {
             return $this->focalpoints();
@@ -26,15 +20,16 @@ return [
             return $this->model()->toArray();
         },
 
-        'breakpoints' => function () use ($config) {
-            return $config->breakpoints ?? [];
+        'breakpoints' => function () {
+            $config = (new ResponsiveImages(kirby()))->loadConfig();
+            return $config['breakpoints'] ?? [];
         },
 
         'fileType' => function () {
             return $this->model()->type();
         },
 
-        'value' => function ($value = []) use ($config) {
+        'value' => function ($value = []) {
             if (is_array($value)) {
                 return $value;
             }
