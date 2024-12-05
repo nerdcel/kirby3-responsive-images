@@ -13,6 +13,7 @@
           class="k-form-buttons"
         >
           <k-button
+            theme="notice"
             icon="undo"
             size="sm"
             variant="filled"
@@ -21,6 +22,7 @@
             :responsive="true"
           />
           <k-button
+            theme="notice"
             icon="check"
             size="sm"
             variant="filled"
