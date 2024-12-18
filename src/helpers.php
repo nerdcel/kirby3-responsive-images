@@ -19,6 +19,11 @@ if (!function_exists('responsiveImage')) {
     function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null, $lazy = false, $alt = null, $imageType = null): string
     {
         try {
+            $ext = $file->extension();
+            // If file is a gif, use the original file
+            if ($ext === 'gif') {
+                return $file;
+            }
             return (new ResponsiveImages(kirby()))->makeResponsiveImage($responsiveImageSlug, $file, $classes, $lazy, $alt, $imageType);
         } catch (JsonException|\Kirby\Exception\InvalidArgumentException $e) {
             return '';
