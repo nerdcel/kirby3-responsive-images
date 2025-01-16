@@ -175,7 +175,7 @@ class ResponsiveImages
                 $cache = kirby()->cache('nerdcel.responsive-images');
 
                 try {
-                    $cacheKey = md5($file->hash().base64_encode(json_encode($setting['breakpointoptions'],
+                    $cacheKey = md5($file->mediaHash().base64_encode(json_encode($setting['breakpointoptions'],
                             JSON_THROW_ON_ERROR)).base64_encode(json_encode($this->settings['breakpoints'],
                                 JSON_THROW_ON_ERROR).$classes).$slug.$classes.$lazy.$alt);
                 } catch (JsonException) {
