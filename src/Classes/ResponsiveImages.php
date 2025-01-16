@@ -168,7 +168,7 @@ class ResponsiveImages
         ?string $alt
     ): string {
         $cacheComponents = [
-            $file->mediaHash()(),
+            $file->mediaHash(),
             json_encode($setting['breakpointoptions'] ?? []),
             json_encode($this->settings['breakpoints'] ?? []),
             $classes ?? '',
