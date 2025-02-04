@@ -13,41 +13,10 @@ return [
         'action' => function () {
             try {
                 $fields = kirby()->request()->body()->toArray();
-                $modelBreakpoints = [];
-                $modelSettings = [];
 
-                $breakpointsKeys = ['mediaquery', 'name', 'width'];
-                $settingsKeys = ['name', 'breakpointoptions'];
-                $optionKeys = ['breakpoint', 'width', 'cropwidth', 'height', 'cropheight', 'retina'];
+                $json = json_encode($fields, JSON_THROW_ON_ERROR);
 
-                foreach ($fields['breakpoints'] as $key => $breakpoint) {
-                    foreach ($breakpointsKeys as $value) {
-                        $modelBreakpoints[$key][$value] = $breakpoint[$value] ?? null;
-                    }
-                }
-
-                foreach ($fields['settings'] as $key => $setting) {
-                    foreach ($settingsKeys as $value) {
-                        if ($value === 'breakpointoptions') {
-                            foreach ($setting['breakpointoptions'] as $keyOption => $option) {
-                                foreach ($optionKeys as $valueOptionKey) {
-                                    $modelSettings[$key][$value][$keyOption][$valueOptionKey] = $option[$valueOptionKey] ?? null;
-                                };
-                            }
-                            continue;
-                        }
-                        $modelSettings[$key][$value] = $setting[$value] ?? null;
-                    }
-                }
-
-                $model = [
-                    'breakpoints' => $modelBreakpoints,
-                    'settings' => $modelSettings,
-                ];
-
-                $json = json_encode($model, JSON_THROW_ON_ERROR);
-
-                ResponsiveImages::getInstance()->writeConfig($json);
+                (new ResponsiveImages(kirby()))->writeConfig($json);
 
                 return Response::json($json, 200);
             } catch (\Exception $e) {

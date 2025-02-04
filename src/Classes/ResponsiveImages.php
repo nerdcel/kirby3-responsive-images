@@ -6,202 +6,315 @@ use Exception;
 use JsonException;
 use Kirby\Cms\App;
 use Kirby\Cms\File;
+use Kirby\Cms\User;
 use Kirby\Exception\PermissionException;
-use Kirby\Toolkit\Config;
 use Kirby\Filesystem\F;
-use Kirby\Exception\LogicException;
+use Kirby\Toolkit\Config;
+use Psr\Log\LoggerInterface;
 
 class ResponsiveImages
 {
-    public array $settings = [];
-    public array $config = [];
-    public string $configFilePath = '';
-    public string $default = '';
+    /**
+     * Default configuration for responsive images
+     */
+    private const DEFAULT_CONFIG = [
+        'breakpoints' => [],
+        'settings' => [],
+    ];
+
+    /**
+     * Configuration settings
+     */
+    private array $settings = [];
 
     /**
      * Kirby App instance
-     *
-     * @var \Kirby\Cms\App
      */
-    protected $kirby;
-
-    protected static $instance;
+    private App $kirby;
 
     /**
-     * gets the instance via lazy initialization (created on first usage)
+     * Logger instance
      */
-    public static function getInstance(?array $config = null, ?App $kirby = null): self
-    {
-        if (
-            self::$instance !== null &&
-            ($kirby === null || self::$instance->kirby() === $kirby)
-        ) {
-            return self::$instance;
-        }
+    private ?LoggerInterface $logger;
 
-        return self::$instance = new self($config, $kirby);
+    /**
+     * Constructor with dependency injection
+     *
+     * @param  App  $kirby  Kirby application instance
+     * @param  LoggerInterface|null  $logger  Optional logger
+     */
+    public function __construct(App $kirby, ?LoggerInterface $logger = null)
+    {
+        $this->kirby = $kirby;
+        $this->logger = $logger;
     }
 
-    public function __construct(?array $config = null, ?App $kirby = null)
+    /**
+     * Retrieve configuration options with sensible defaults
+     */
+    private function getOptions(): array
     {
-        $this->kirby = $kirby ?? App::instance();
+        return Config::get('nerdcel.responsive-images', [
+            'configPath' => $this->kirby->root('content'),
+            'configFile' => 'responsive-img.json',
+            'quality' => 75,
+            'defaultWidth' => 1024,
+            'allowedRoles' => ['admin'],
+            'supportedFormats' => ['webp', 'avif', 'jpg', 'png'],
+        ]);
+    }
 
-        if ($config) {
-            $this->config = $config;
-        } else {
-            $this->config = Config::get('nerdcel.responsive-images', [
-                'configPath' => kirby()->root('content'),
-                'configFile' => 'responsive-img.json',
-                'quality' => 75,
-                'defaultWidth' => 1024,
-                'allowedRoles' => [
-                    'admin',
-                ],
-            ]);
-        }
+    /**
+     * Generate full path to configuration file
+     */
+    private function getConfigFilePath(): string
+    {
+        $options = $this->getOptions();
 
+        return $options['configPath'].'/'.$options['configFile'];
+    }
+
+    public function writeConfig(string $config)
+    {
+        F::write($this->getConfigFilePath(), $config);
+    }
+
+    /**
+     * Load and validate configuration
+     *
+     * @throws JsonException
+     */
+    public function loadConfig(): array
+    {
         try {
-            $this->default = json_encode(['breakpoints' => [], 'settings' => []], JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            $this->default = '{"breakpoints": [], "settings": []}';
-        }
+            $configPath = $this->getConfigFilePath();
 
-        $this->configFilePath = $this->config['configPath'].'/'.$this->config['configFile'];
+            // Ensure config file exists
+            if (! F::exists($configPath)) {
+                $this->writeConfig(json_encode(self::DEFAULT_CONFIG));
+            }
+
+            // Read and parse configuration
+            $configContent = F::read($configPath);
+            $config = json_decode($configContent, true, 512, JSON_THROW_ON_ERROR);
+
+            // Validate config structure
+            if (! $this->validateConfigStructure($config)) {
+                $this->logError('Invalid configuration structure');
+
+                return self::DEFAULT_CONFIG;
+            }
+
+            return $config;
+        } catch (JsonException $e) {
+            $this->logError('Configuration parsing error: '.$e->getMessage());
+
+            return self::DEFAULT_CONFIG;
+        }
     }
 
-
     /**
-     * Ensures that the current user has the specified permission
-     *
-     * @param  string  $permission
-     *
-     * @return void
-     *
-     * @throws LogicException If no user is logged in
-     * @throws PermissionException If the user does not have the required permission
+     * Validate configuration structure
      */
-    public function checkPermission(string $permission): void
+    private function validateConfigStructure(array $config): bool
     {
-        if ($this->hasPermission($permission) !== true) {
-            throw new PermissionException([
-                'key' => 'responsive-images.permission',
-                'data' => compact('permission'),
-            ]);
+        return isset($config['breakpoints']) &&
+               isset($config['settings']) &&
+               is_array($config['breakpoints']) &&
+               is_array($config['settings']);
+    }
+
+    /**
+     * Log error messages
+     */
+    private function logError(string $message): void
+    {
+        if ($this->logger) {
+            $this->logger->error($message);
         }
     }
 
     /**
-     * @throws LogicException
+     * Check user permissions
      */
     public function hasPermission(string $permission): bool
     {
         $user = $this->kirby->user();
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return false;
         }
 
-        $permissions = $user->role()->permissions();
+        try {
+            $permissions = $user->role()->permissions();
 
-        return $permissions->for('nerdcel.responsive-images', $permission);
-    }
+            return $permissions->for('nerdcel.responsive-images', $permission);
+        } catch (Exception $e) {
+            $this->logError("Permission check failed: {$e->getMessage()}");
 
-    /**
-     * Get config
-     *
-     * @return string JSON
-     * @throws Exception
-     */
-    public function getConfig(): string
-    {
-        if (file_exists($this->configFilePath)) {
-            return F::read($this->configFilePath);
+            return false;
         }
-
-        F::write($this->configFilePath, $this->default);
-
-        return $this->default;
     }
 
     /**
-     * Write config string to file
-     *
-     * @param  string  $config
-     *
-     * @return void
-     * @throws Exception
+     * Generate a predictable cache key
      */
-    public function writeConfig(string $config): void
-    {
-        F::write($this->configFilePath, $config);
+    private function generateCacheKey(
+        File $file,
+        array $setting,
+        ?string $classes,
+        string $slug,
+        bool $lazy,
+        ?string $alt
+    ): string {
+        $cacheComponents = [
+            $file->mediaHash(),
+            json_encode($setting['breakpointoptions'] ?? []),
+            json_encode($this->settings['breakpoints'] ?? []),
+            $classes ?? '',
+            $slug,
+            $lazy ? 'lazy' : 'eager',
+            $alt ?? '',
+        ];
+
+        return md5(implode('|', $cacheComponents));
     }
 
     /**
-     * Make responsive image
+     * Create responsive image with advanced options
      *
-     * @param  string  $slug
-     * @param  File  $file
-     * @param  string|null  $classes
-     * @param  bool  $lazy
-     * @param  string|null  $alt
-     * @param  string|null  $imageType
-     *
-     * @return string
      * @throws JsonException
      */
     public function makeResponsiveImage(
         string $slug,
         File $file,
-        string $classes = null,
+        ?string $classes = null,
         bool $lazy = false,
-        string $alt = null,
-        string $imageType = null
+        ?string $alt = null,
+        ?string $imageType = null
     ): string {
-        if (! $this->settings) {
-            $this->settings = json_decode($this->getConfig(), true, 512, JSON_THROW_ON_ERROR);
+        // Ensure settings are loaded
+        if (empty($this->settings)) {
+            $this->settings = $this->loadConfig();
         }
 
-        $settings = array_column($this->settings['settings'], 'name');
+        // Find specific image settings
+        $imageSetting = $this->findImageSettings($slug);
 
-        if (count($settings)) {
-            $index = array_search($slug, $settings, true);
-
-            if ($index !== false) {
-                $setting = $this->settings['settings'][$index];
-                $sorted = array_column($setting['breakpointoptions'], 'width');
-
-                array_multisort($sorted, SORT_DESC, $setting['breakpointoptions']);
-
-                $cache = kirby()->cache('nerdcel.responsive-images');
-
-                try {
-                    $cacheKey = md5($file->mediaHash().base64_encode(json_encode($setting['breakpointoptions'],
-                            JSON_THROW_ON_ERROR)).base64_encode(json_encode($this->settings['breakpoints'],
-                                JSON_THROW_ON_ERROR).$classes).$slug.$classes.$lazy.$alt);
-                } catch (JsonException) {
-                    $cacheKey = null;
-                }
-
-                $imgCache = $cacheKey ? $cache->get($cacheKey) : null;
-
-                if ($imgCache === null) {
-                    $RI = new Tag($file, $this->config, $this->settings['breakpoints'], $classes, $alt);
-
-                    foreach ($setting['breakpointoptions'] as $value) {
-                        $RI->addSource($value, $imageType);
-                    }
-
-                    $RI->addImg(array_pop($setting['breakpointoptions']), $lazy, $imageType);
-                    $imgCache = $RI->writeTag();
-                    $cache->set($cacheKey, $imgCache);
-                }
-
-                return $imgCache;
-            }
+        if (! $imageSetting) {
+            return $this->createDefaultResponsiveImage(
+                $file,
+                $classes,
+                $lazy,
+                $alt,
+                $imageType
+            );
         }
 
-        return '<img src="'.Cropper::crop($file, [
-                'width' => $this->config['defaultWidth'], 'crop' => false, 'format' => $imageType ?? null,
-            ])->url().'" class="'.$classes.'" '.($lazy ? "loading=\"lazy\"" : null).'/>';
+        return $this->createCustomResponsiveImage(
+            $file,
+            $imageSetting,
+            $classes,
+            $lazy,
+            $alt,
+            $imageType
+        );
+    }
+
+    /**
+     * Find specific image settings by slug
+     */
+    private function findImageSettings(string $slug): ?array
+    {
+        $settings = $this->settings['settings'] ?? [];
+        $slugIndex = array_search($slug, array_column($settings, 'name'));
+
+        return $slugIndex !== false ? $settings[$slugIndex] : null;
+    }
+
+    /**
+     * Create default responsive image
+     */
+    private function createDefaultResponsiveImage(
+        File $file,
+        ?string $classes,
+        bool $lazy,
+        ?string $alt,
+        ?string $imageType
+    ): string {
+        $options = $this->getOptions();
+
+        return sprintf(
+            '<img src="%s" class="%s" %s %s/>',
+            Cropper::crop($file, [
+                'width' => $options['defaultWidth'],
+                'crop' => false,
+                'format' => $imageType,
+            ])->url(),
+            $classes ?? '',
+            $lazy ? 'loading="lazy"' : '',
+            $alt ? "alt=\"{$alt}\"" : ''
+        );
+    }
+
+    /**
+     * Create custom responsive image with multiple sources
+     */
+    private function createCustomResponsiveImage(
+        File $file,
+        array $setting,
+        ?string $classes,
+        bool $lazy,
+        ?string $alt,
+        ?string $imageType
+    ): string {
+        $options = $this->getOptions();
+        $cache = $this->kirby->cache('nerdcel.responsive-images');
+
+        // Sort breakpoints
+        $breakpointOptions = $setting['breakpointoptions'] ?? [];
+        usort($breakpointOptions, fn($a, $b) => $b['width'] <=> $a['width']);
+
+        // Generate cache key
+        $cacheKey = $this->generateCacheKey(
+            $file,
+            $setting,
+            $classes,
+            $setting['name'],
+            $lazy,
+            $alt
+        );
+
+        // Check cache
+        $cachedImage = $cache->get($cacheKey);
+        if ($cachedImage) {
+            return $cachedImage;
+        }
+
+        // Generate responsive image
+        $responsiveTag = new Tag(
+            $file,
+            $options,
+            $this->settings['breakpoints'],
+            $classes,
+            $alt
+        );
+
+        foreach ($breakpointOptions as $option) {
+            $responsiveTag->addSource($option, $imageType);
+        }
+
+        $responsiveTag->addImg(
+            array_pop($breakpointOptions),
+            $lazy,
+            $imageType
+        );
+
+        $generatedImage = $responsiveTag->writeTag();
+
+        // Cache the result
+        $cache->set($cacheKey, $generatedImage);
+
+        return $generatedImage;
     }
 }
