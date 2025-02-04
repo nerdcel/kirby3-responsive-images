@@ -24,6 +24,7 @@ if (!function_exists('responsiveImage')) {
             if ($ext === 'gif') {
                 return $file;
             }
+
             return (new ResponsiveImages(kirby()))->makeResponsiveImage($responsiveImageSlug, $file, $classes, $lazy, $alt, $imageType);
         } catch (JsonException|\Kirby\Exception\InvalidArgumentException $e) {
             return '';
