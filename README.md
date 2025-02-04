@@ -1,6 +1,9 @@
 # Responsive Images Plugin
+![GitHub release](https://img.shields.io/github/release/nerdcel/kirby3-responsive-images.svg)
+![License](https://img.shields.io/github/license/nerdcel/kirby3-responsive-images.svg)
+![Kirby 4+](https://img.shields.io/badge/Kirby-4%2B-00a2ed)
 
-
+![Responsive Images Plugin](docs/panel.png)
 
 This plugin provides functionality to generate responsive images in your Kirby CMS projects.
 
@@ -55,6 +58,20 @@ But there is also a helper function that you can use to generate responsive imag
 ```php
 echo responsiveImage('settings-slug', $file, 'custom-classes', true, 'Alt text', 'webp');
 ```
+
+## Focal Point
+You can set the focal point(s) of an image for different viewports by adding the following fields to the image file blueprint:
+
+```yaml
+...
+fields:
+  focalpoints:
+    label: Focal Points override
+    type: focalpoints
+
+```
+
+![Focal points](docs/focalpoint-default.png)
 
 License
 This plugin is licensed under the MIT License. See the LICENSE file for more details.
