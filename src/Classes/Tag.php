@@ -12,12 +12,20 @@ class Tag
     private array $breakpoints;
     private array $source;
     private string $img;
+    private array $imgObj;
     private float $retinaDensity = 1.5;
     private ?string $classes;
     private ?string $alt;
+    private string $responseType;
 
-    public function __construct(File $file, array $config, array $breakpoints, string $classes = null, $alt = null)
-    {
+    public function __construct(
+        File $file,
+        array $config,
+        array $breakpoints,
+        string $classes = null,
+        $alt = null,
+        $responseType = 'html'
+    ) {
         $this->source = [];
         $this->img = '';
         $this->resource = $file;
@@ -25,6 +33,7 @@ class Tag
         $this->breakpoints = $breakpoints;
         $this->classes = $classes;
         $this->alt = $alt;
+        $this->responseType = $responseType;
     }
 
     /**
@@ -35,6 +44,19 @@ class Tag
     public function writeTag(): string
     {
         return '<picture>'.$this->toSortSource($this->source).$this->img.'</picture>';
+    }
+
+    /**
+     * Return the picture tag as an array
+     *
+     * @return array
+     */
+    public function writeTagObject(): array
+    {
+        return [
+            'source' => $this->source,
+            'img' => $this->imgObj,
+        ];
     }
 
     /**
@@ -62,20 +84,34 @@ class Tag
      *
      * @return void
      */
-    function addImg(array $config, bool $lazy, string $imageType = null): void
+    public function addImg(array $config, bool $lazy, string $imageType = null): void
     {
         $lazyOption = $lazy ? 'lazy' : 'eager';
         $imgSet = $this->adjust($config, false, $imageType);
-        $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()).'" title="'.($this->alt ?: $imgSet['image']->alt()).'" loading="'.$lazyOption.'"/>';
+
+        if ($this->responseType === 'json') {
+            $this->imgObj = [
+                'src' => $imgSet['image']->url(),
+                'width' => $imgSet['image']->width(),
+                'height' => $imgSet['image']->height(),
+                'class' => $this->classes,
+                'alt' => $this->alt ?: $imgSet['image']->alt()->value(),
+                'title' => $this->alt ?: $imgSet['image']->alt()->value(),
+                'loading' => $lazyOption,
+            ];
+        } else {
+            $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'" title="'.($this->alt ?: $imgSet['image']->alt()->value()).'" loading="'.$lazyOption.'"/>';
+        }
     }
 
     /**
      * Add source tag
      *
      * @param  array  $config
-     * @param  boolean  $default
+     * @param  string|null  $imageType
      *
      * @return void
+     * @throws \JsonException
      */
     public function addSource(array $config, string $imageType = null): void
     {
@@ -88,17 +124,36 @@ class Tag
         $this->source[$mediaqueryWidth] = [];
 
         if ($config['retina'] && $imgSet['imageRetina']) {
-            $this->source[$mediaqueryWidth]['retina'] = '<source srcset="'.$imgSet['imageRetina']->url().'"
-                   width="'.$imgSet['imageRetina']->width().'"
-                   height="'.$imgSet['imageRetina']->height().'"
-                   media="('.$mediaquery.': '.$mediaqueryWidth.'px) and (-webkit-min-device-pixel-ratio: '.$this->retinaDensity.'),
-                       ('.$mediaquery.': '.$mediaqueryWidth.'px) and (min-device-pixel-ratio: '.$this->retinaDensity.')"/>';
+            if ($this->responseType === 'json') {
+                $this->source[$mediaqueryWidth]['retina'] = [
+                    'src' => $imgSet['imageRetina']->url(),
+                    'width' => $imgSet['imageRetina']->width(),
+                    'height' => $imgSet['imageRetina']->height(),
+                    'media' => '('.$mediaquery.': '.$mediaqueryWidth.'px) and (-webkit-min-device-pixel-ratio: '.$this->retinaDensity.'),
+                       ('.$mediaquery.': '.$mediaqueryWidth.'px) and (min-device-pixel-ratio: '.$this->retinaDensity.')',
+                ];
+            } else {
+                $this->source[$mediaqueryWidth]['retina'] = '<source srcset="'.$imgSet['imageRetina']->url().'"
+                       width="'.$imgSet['imageRetina']->width().'"
+                       height="'.$imgSet['imageRetina']->height().'"
+                       media="('.$mediaquery.': '.$mediaqueryWidth.'px) and (-webkit-min-device-pixel-ratio: '.$this->retinaDensity.'),
+                           ('.$mediaquery.': '.$mediaqueryWidth.'px) and (min-device-pixel-ratio: '.$this->retinaDensity.')"/>';
+            }
         }
 
-        $this->source[$mediaqueryWidth]['standard'] = '<source srcset="'.$imgSet['image']->url().'"
-            width="'.$imgSet['image']->width().'"
-            height="'.$imgSet['image']->height().'"
-            media="('.$mediaquery.': '.$mediaqueryWidth.'px)"/>';
+        if ($this->responseType === 'json') {
+            $this->source[$mediaqueryWidth]['standard'] = [
+                'src' => $imgSet['image']->url(),
+                'width' => $imgSet['image']->width(),
+                'height' => $imgSet['image']->height(),
+                'media' => '('.$mediaquery.': '.$mediaqueryWidth.'px)',
+            ];
+        } else {
+            $this->source[$mediaqueryWidth]['standard'] = '<source srcset="'.$imgSet['image']->url().'"
+                width="'.$imgSet['image']->width().'"
+                height="'.$imgSet['image']->height().'"
+                media="('.$mediaquery.': '.$mediaqueryWidth.'px)"/>';
+        }
     }
 
     /**

@@ -7,7 +7,7 @@
         "test": "phpunit tests --process-isolation"
     },
     "keywords": [
-        "kirby3",
+        "kirby",
         "kirby-cms",
         "kirby-plugin",
         "getkirby",

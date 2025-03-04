@@ -91,7 +91,7 @@ class ResponsiveImages
 
             // Ensure config file exists
             if (! F::exists($configPath)) {
-                $this->writeConfig(json_encode(self::DEFAULT_CONFIG));
+                $this->writeConfig(json_encode(self::DEFAULT_CONFIG, JSON_THROW_ON_ERROR));
             }
 
             // Read and parse configuration
@@ -158,6 +158,7 @@ class ResponsiveImages
 
     /**
      * Generate a predictable cache key
+     * @throws JsonException
      */
     private function generateCacheKey(
         File $file,
@@ -165,16 +166,18 @@ class ResponsiveImages
         ?string $classes,
         string $slug,
         bool $lazy,
-        ?string $alt
+        ?string $alt,
+        ?string $responseType = null
     ): string {
         $cacheComponents = [
             $file->mediaHash(),
-            json_encode($setting['breakpointoptions'] ?? []),
-            json_encode($this->settings['breakpoints'] ?? []),
+            json_encode($setting['breakpointoptions'] ?? [], JSON_THROW_ON_ERROR),
+            json_encode($this->settings['breakpoints'] ?? [], JSON_THROW_ON_ERROR),
             $classes ?? '',
             $slug,
             $lazy ? 'lazy' : 'eager',
             $alt ?? '',
+            $responseType ?? 'html',
         ];
 
         return md5(implode('|', $cacheComponents));
@@ -222,6 +225,49 @@ class ResponsiveImages
     }
 
     /**
+     * Create responsive image with advanced options as an object
+     *
+     * @throws JsonException
+     */
+    public function makeResponsiveImageObject(
+        string $slug,
+        File $file,
+        ?string $classes = null,
+        bool $lazy = false,
+        ?string $alt = null,
+        ?string $imageType = null
+    ): string {
+        // Ensure settings are loaded
+        if (empty($this->settings)) {
+            $this->settings = $this->loadConfig();
+        }
+
+        // Find specific image settings
+        $imageSetting = $this->findImageSettings($slug);
+
+        if (! $imageSetting) {
+            return $this->createDefaultResponsiveImage(
+                $file,
+                $classes,
+                $lazy,
+                $alt,
+                $imageType,
+                'json'
+            );
+        }
+
+        return $this->createCustomResponsiveImage(
+            $file,
+            $imageSetting,
+            $classes,
+            $lazy,
+            $alt,
+            $imageType,
+            'json'
+        );
+    }
+
+    /**
      * Find specific image settings by slug
      */
     private function findImageSettings(string $slug): ?array
@@ -234,15 +280,30 @@ class ResponsiveImages
 
     /**
      * Create default responsive image
+     * @throws JsonException
      */
     private function createDefaultResponsiveImage(
         File $file,
         ?string $classes,
         bool $lazy,
         ?string $alt,
-        ?string $imageType
+        ?string $imageType,
+        ?string $responseType = 'html'
     ): string {
         $options = $this->getOptions();
+
+        if ($responseType === 'json') {
+            return json_encode([
+                'src' => Cropper::crop($file, [
+                    'width' => $options['defaultWidth'],
+                    'crop' => false,
+                    'format' => $imageType,
+                ])->url(),
+                'class' => $classes ?? '',
+                'lazy' => $lazy,
+                'alt' => $alt,
+            ], JSON_THROW_ON_ERROR);
+        }
 
         return sprintf(
             '<img src="%s" class="%s" %s %s/>',
@@ -259,6 +320,7 @@ class ResponsiveImages
 
     /**
      * Create custom responsive image with multiple sources
+     * @throws JsonException
      */
     private function createCustomResponsiveImage(
         File $file,
@@ -266,7 +328,8 @@ class ResponsiveImages
         ?string $classes,
         bool $lazy,
         ?string $alt,
-        ?string $imageType
+        ?string $imageType,
+        ?string $responseType = 'html'
     ): string {
         $options = $this->getOptions();
         $cache = $this->kirby->cache('nerdcel.responsive-images');
@@ -282,7 +345,8 @@ class ResponsiveImages
             $classes,
             $setting['name'],
             $lazy,
-            $alt
+            $alt,
+            $responseType
         );
 
         // Check cache
@@ -297,7 +361,8 @@ class ResponsiveImages
             $options,
             $this->settings['breakpoints'],
             $classes,
-            $alt
+            $alt,
+            $responseType
         );
 
         foreach ($breakpointOptions as $option) {
@@ -310,7 +375,11 @@ class ResponsiveImages
             $imageType
         );
 
-        $generatedImage = $responsiveTag->writeTag();
+        if ($responseType === 'html') {
+            $generatedImage = $responsiveTag->writeTag();
+        } else {
+            $generatedImage = json_encode($responsiveTag->writeTagObject(), JSON_THROW_ON_ERROR);
+        }
 
         // Cache the result
         $cache->set($cacheKey, $generatedImage);

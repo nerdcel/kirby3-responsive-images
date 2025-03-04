@@ -16,7 +16,7 @@ if (!function_exists('responsiveImage')) {
      * @return string
      * @throws Exception
      */
-    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null, $lazy = false, $alt = null, $imageType = null): string
+    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null, $lazy = false, $alt = null, $imageType = null, $responseType = 'html'): string
     {
         try {
             $ext = $file->extension();
@@ -25,7 +25,10 @@ if (!function_exists('responsiveImage')) {
                 return $file;
             }
 
-            return (new ResponsiveImages(kirby()))->makeResponsiveImage($responsiveImageSlug, $file, $classes, $lazy, $alt, $imageType);
+            if ($responseType === 'html') {
+                return (new ResponsiveImages(kirby()))->makeResponsiveImage($responsiveImageSlug, $file, $classes, $lazy, $alt, $imageType);
+            }
+            return (new ResponsiveImages(kirby()))->makeResponsiveImageObject($responsiveImageSlug, $file, $classes, $lazy, $alt, $imageType);
         } catch (JsonException|\Kirby\Exception\InvalidArgumentException $e) {
             return '';
         }
