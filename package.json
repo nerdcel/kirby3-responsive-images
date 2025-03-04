@@ -1,6 +1,6 @@
 {
   "name": "kirby3-responsive-images",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Responsive images panel for Kirby3",
   "main": "index.js",
   "scripts": {
