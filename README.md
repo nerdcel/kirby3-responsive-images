@@ -18,18 +18,26 @@ This plugin provides functionality to generate responsive images in your Kirby C
 
 ## Configuration
 
-You can configure the plugin by adding the following options to your `config.php` file:
+You can configure the plugin by adding the following options to your `config.php` file. Consider using the "ready" hook inside the kirby config if you are
+calling the kirby() function to set the configPath.
 
 ```php
-return [
-    'nerdcel.responsive-images' => [
-        'configPath' => kirby()->root('content'),
-        'configFile' => 'responsive-img.json',
-        'quality' => 75,
-        'defaultWidth' => 1024,
-        'allowedRoles' => ['admin'],
-    ],
-];
+'ready' => function ($kirby) {
+    return [
+        'nerdcel.responsive-images' => [
+            'configPath' => kirby()->root('content'),
+            'configFile' => 'responsive-img.json',
+            'quality' => 75,
+            'defaultWidth' => 1024,
+            'allowedRoles' => ['admin'],
+        ],
+    ];
+}
+```
+
+If you open the panel now, the plugin should have generated an empty json file with the following content:
+```json
+{"breakpoints": [], "settings": []}
 ```
 
 ## Usage
