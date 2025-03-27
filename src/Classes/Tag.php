@@ -213,7 +213,7 @@ class Tag
             $return['height'] = $originalHeight;
 
             if ($retina) {
-                $originalRetinaHeight = $this->resource->dimensions()->height() * $this->retinaDensity;
+                $originalRetinaHeight = (int) ($this->resource->dimensions()->height() * $this->retinaDensity);
                 $imageRetina = $this->resource->thumb([
                     'width' => $widthRetina,
                     'height' => $originalRetinaHeight,
@@ -237,7 +237,7 @@ class Tag
             $return['height'] = $height;
 
             if ($retina) {
-                $originalRetinaWidth = $this->resource->dimensions()->width() * $this->retinaDensity;
+                $originalRetinaWidth = (int) ($this->resource->dimensions()->width() * $this->retinaDensity);
                 $imageRetina = $this->resource->thumb([
                     'width' => $originalRetinaWidth,
                     'height' => $heightRetina,
