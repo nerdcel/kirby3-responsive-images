@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.2](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.1...v3.1.2) (2025-03-27)
+
+
+### Bug Fixes
+
+* **Tag:** cast retina dimensions to integer for accurate image generation ([13b9e54](https://github.com/mokkapps/changelog-generator-demo/commits/13b9e54316c37fd3ef1d30b1ecc1e16a0de182c3))
+
 ### [3.1.1](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.0...v3.1.1) (2025-03-10)
 
 ### [3.0.1](https://github.com/mokkapps/changelog-generator-demo/compare/v3.0.0...v3.0.1) (2025-02-04)
