@@ -7,7 +7,6 @@ use JsonException;
 use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\User;
-use Kirby\Exception\PermissionException;
 use Kirby\Filesystem\F;
 use Kirby\Toolkit\Config;
 use Psr\Log\LoggerInterface;
@@ -331,59 +330,82 @@ class ResponsiveImages
         ?string $imageType,
         ?string $responseType = 'html'
     ): string {
-        $options = $this->getOptions();
-        $cache = $this->kirby->cache('nerdcel.responsive-images');
+        try {
+            $options = $this->getOptions();
+            $cache = $this->kirby->cache('nerdcel.responsive-images');
 
-        // Sort breakpoints
-        $breakpointOptions = $setting['breakpointoptions'] ?? [];
-        usort($breakpointOptions, fn($a, $b) => $b['width'] <=> $a['width']);
+            // Sort breakpoints
+            $breakpointOptions = $setting['breakpointoptions'] ?? [];
+            usort($breakpointOptions, fn($a, $b) => $b['width'] <=> $a['width']);
 
-        // Generate cache key
-        $cacheKey = $this->generateCacheKey(
-            $file,
-            $setting,
-            $classes,
-            $setting['name'],
-            $lazy,
-            $alt,
-            $responseType
-        );
+            // Generate cache key
+            $cacheKey = $this->generateCacheKey(
+                $file,
+                $setting,
+                $classes,
+                $setting['name'],
+                $lazy,
+                $alt,
+                $responseType
+            );
 
-        // Check cache
-        $cachedImage = $cache->get($cacheKey);
-        if ($cachedImage) {
-            return $cachedImage;
+            // Check cache
+            $cachedImage = $cache->get($cacheKey);
+            if ($cachedImage) {
+                return $cachedImage;
+            }
+
+            // Generate responsive image
+            $responsiveTag = new Tag(
+                $file,
+                $options,
+                $this->settings['breakpoints'],
+                $classes,
+                $alt,
+                $responseType
+            );
+
+            foreach ($breakpointOptions as $option) {
+                $responsiveTag->addSource($option, $imageType);
+            }
+
+            $responsiveTag->addImg(
+                array_pop($breakpointOptions),
+                $lazy,
+                $imageType
+            );
+
+            if ($responseType === 'html') {
+                $generatedImage = $responsiveTag->writeTag();
+            } else {
+                $generatedImage = json_encode($responsiveTag->writeTagObject(), JSON_THROW_ON_ERROR);
+            }
+
+            // Cache the result
+            $cache->set($cacheKey, $generatedImage);
+
+            return $generatedImage;
+        } catch (\Exception $e) {
+            // Return unprocessed image in case of error. Acknowledge the responseType
+            // and return the image URL directly.
+            if ($responseType === 'json') {
+                return json_encode([
+                    'img' => [
+                        'src' => $file->url(),
+                        'class' => $classes ?? '',
+                        'lazy' => $lazy,
+                        'alt' => $alt,
+                    ],
+                    'source' => [],
+                ], JSON_THROW_ON_ERROR);
+            }
+            return sprintf(
+                '<img src="%s" class="%s" %s %s/>',
+                $file->url(),
+                $classes ?? '',
+                $lazy ? 'loading="lazy"' : '',
+                $alt ? "alt=\"{$alt}\"" : ''
+            );
         }
-
-        // Generate responsive image
-        $responsiveTag = new Tag(
-            $file,
-            $options,
-            $this->settings['breakpoints'],
-            $classes,
-            $alt,
-            $responseType
-        );
-
-        foreach ($breakpointOptions as $option) {
-            $responsiveTag->addSource($option, $imageType);
-        }
-
-        $responsiveTag->addImg(
-            array_pop($breakpointOptions),
-            $lazy,
-            $imageType
-        );
-
-        if ($responseType === 'html') {
-            $generatedImage = $responsiveTag->writeTag();
-        } else {
-            $generatedImage = json_encode($responsiveTag->writeTagObject(), JSON_THROW_ON_ERROR);
-        }
-
-        // Cache the result
-        $cache->set($cacheKey, $generatedImage);
-
-        return $generatedImage;
     }
 }
