@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.3](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.2...v3.1.3) (2025-03-31)
+
+
+### Bug Fixes
+
+* **ResponsiveImages, Tag:** add error handling for image processing and validation ([051a3df](https://github.com/mokkapps/changelog-generator-demo/commits/051a3dfbd24b024eb3bad907a6890e323b671140))
+
 ### [3.1.2](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.1...v3.1.2) (2025-03-27)
 
 
