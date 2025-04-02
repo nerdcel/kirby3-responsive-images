@@ -128,9 +128,7 @@ class ResponsiveImages
      */
     private function logError(string $message): void
     {
-        if ($this->logger) {
-            $this->logger->error($message);
-        }
+        $this->logger?->error($message);
     }
 
     /**
@@ -330,51 +328,59 @@ class ResponsiveImages
         ?string $imageType,
         ?string $responseType = 'html'
     ): string {
-        try {
-            $options = $this->getOptions();
-            $cache = $this->kirby->cache('nerdcel.responsive-images');
+        $options = $this->getOptions();
+        $cache = $this->kirby->cache('nerdcel.responsive-images');
 
-            // Sort breakpoints
-            $breakpointOptions = $setting['breakpointoptions'] ?? [];
-            usort($breakpointOptions, fn($a, $b) => $b['width'] <=> $a['width']);
+        // Sort breakpoints
+        $breakpointOptions = $setting['breakpointoptions'] ?? [];
+        usort($breakpointOptions, fn($a, $b) => $b['width'] <=> $a['width']);
 
-            // Generate cache key
-            $cacheKey = $this->generateCacheKey(
-                $file,
-                $setting,
-                $classes,
-                $setting['name'],
-                $lazy,
-                $alt,
-                $responseType
-            );
+        // Generate cache key
+        $cacheKey = $this->generateCacheKey(
+            $file,
+            $setting,
+            $classes,
+            $setting['name'],
+            $lazy,
+            $alt,
+            $responseType
+        );
 
-            // Check cache
-            $cachedImage = $cache->get($cacheKey);
-            if ($cachedImage) {
-                return $cachedImage;
-            }
+        // Check cache
+        $cachedImage = $cache->get($cacheKey);
+        if ($cachedImage) {
+            return $cachedImage;
+        }
 
-            // Generate responsive image
-            $responsiveTag = new Tag(
-                $file,
-                $options,
-                $this->settings['breakpoints'],
-                $classes,
-                $alt,
-                $responseType
-            );
+        // Generate responsive image
+        $responsiveTag = new Tag(
+            $file,
+            $options,
+            $this->settings['breakpoints'],
+            $classes,
+            $alt,
+            $responseType
+        );
 
-            foreach ($breakpointOptions as $option) {
+        foreach ($breakpointOptions as $option) {
+            try {
                 $responsiveTag->addSource($option, $imageType);
+            } catch (\Exception $exception) {
+                $this->logError('Error generating responsive image: '.$exception->getMessage());
             }
+        }
 
+        try {
             $responsiveTag->addImg(
                 array_pop($breakpointOptions),
                 $lazy,
                 $imageType
             );
+        } catch (\Exception $exception) {
+            $this->logError('Error generating responsive image: '.$exception->getMessage());
+        }
 
+        if ($responsiveTag->checkTag()) {
             if ($responseType === 'html') {
                 $generatedImage = $responsiveTag->writeTag();
             } else {
@@ -385,27 +391,27 @@ class ResponsiveImages
             $cache->set($cacheKey, $generatedImage);
 
             return $generatedImage;
-        } catch (\Exception $e) {
-            // Return unprocessed image in case of error. Acknowledge the responseType
-            // and return the image URL directly.
-            if ($responseType === 'json') {
-                return json_encode([
-                    'img' => [
-                        'src' => $file->url(),
-                        'class' => $classes ?? '',
-                        'lazy' => $lazy,
-                        'alt' => $alt,
-                    ],
-                    'source' => [],
-                ], JSON_THROW_ON_ERROR);
-            }
-            return sprintf(
-                '<img src="%s" class="%s" %s %s/>',
-                $file->url(),
-                $classes ?? '',
-                $lazy ? 'loading="lazy"' : '',
-                $alt ? "alt=\"{$alt}\"" : ''
-            );
         }
+
+        // Fallback to default image if generation fails
+        if ($responseType === 'json') {
+            return json_encode([
+                'img' => [
+                    'src' => $file->url(),
+                    'class' => $classes ?? '',
+                    'lazy' => $lazy,
+                    'alt' => $alt,
+                ],
+                'source' => [],
+            ], JSON_THROW_ON_ERROR);
+        }
+
+        return sprintf(
+            '<div class="%s"><img src="%s" %s %s/></div>',
+            $classes ?? '',
+            $file->url(),
+            $lazy ? 'loading="lazy"' : '',
+            $alt ? "alt=\"{$alt}\"" : ''
+        );
     }
 }
