@@ -46,6 +46,11 @@ class Tag
         return '<picture>'.$this->toSortSource($this->source).$this->img.'</picture>';
     }
 
+    public function checkTag(): bool
+    {
+        return ! empty($this->source) || ! empty($this->img);
+    }
+
     /**
      * Return the picture tag as an array
      *
@@ -212,133 +217,124 @@ class Tag
         ];
 
         if ($cropWidth && ! $cropHeight) {
-            if ($width > $originalWidth) {
-                throw new \Exception('Width is greater than original image width');
-            }
-            $image = $this->resource->thumb([
-                    'width' => $width,
-                    'height' => $originalHeight,
-                    'crop' => $this->getFocus($config),
-                    'format' => $imageType ?? null,
+            try {
+                $image = $this->resource->thumb([
+                        'width' => $width,
+                        'height' => $originalHeight,
+                        'crop' => $this->getFocus($config),
+                        'format' => $imageType ?? null,
 
-                ]
-            );
+                    ]
+                );
+            } catch (\Exception $e) {
+                throw new \Exception('Error: '.$e->getMessage());
+            }
             $return['width'] = $width;
             $return['height'] = $originalHeight;
 
             if ($retina) {
                 $originalRetinaHeight = (int) ($this->resource->dimensions()->height() * $this->retinaDensity);
-                if ($originalRetinaHeight > $originalHeight) {
-                    throw new \Exception('Height is greater than original image height');
+                try {
+                    $imageRetina = $this->resource->thumb([
+                        'width' => $widthRetina,
+                        'height' => $originalRetinaHeight,
+                        'crop' => $this->getFocus($config),
+                        'format' => $imageType ?? null,
+                    ]);
+                } catch (\Exception $e) {
+                    throw new \Exception('Error: '.$e->getMessage());
                 }
-                $imageRetina = $this->resource->thumb([
-                    'width' => $widthRetina,
-                    'height' => $originalRetinaHeight,
-                    'crop' => $this->getFocus($config),
-                    'format' => $imageType ?? null,
-                ]);
                 $return['widthRetina'] = $widthRetina;
                 $return['heightRetina'] = $originalRetinaHeight;
             }
         }
 
         if (! $cropWidth && $cropHeight) {
-            if ($height > $originalHeight) {
-                throw new \Exception('Height is greater than original image height');
+            try {
+                $image = $this->resource->thumb([
+                    'width' => $originalWidth,
+                    'height' => $height,
+                    'crop' => $this->getFocus($config),
+                    'format' => $imageType ?? null,
+                ]);
+            } catch (\Exception $e) {
+                throw new \Exception('Error: '.$e->getMessage());
             }
-            $originalWidth = $this->resource->dimensions()->width();
-            $image = $this->resource->thumb([
-                'width' => $originalWidth,
-                'height' => $height,
-                'crop' => $this->getFocus($config),
-                'format' => $imageType ?? null,
-            ]);
             $return['width'] = $originalWidth;
             $return['height'] = $height;
 
             if ($retina) {
                 $originalRetinaWidth = (int) ($this->resource->dimensions()->width() * $this->retinaDensity);
-                if ($originalRetinaWidth > $originalWidth) {
-                    throw new \Exception('Width is greater than original image width');
+                try {
+                    $imageRetina = $this->resource->thumb([
+                        'width' => $originalRetinaWidth,
+                        'height' => $heightRetina,
+                        'crop' => $this->getFocus($config),
+                        'format' => $imageType ?? null,
+                    ]);
+                } catch (\Exception $e) {
+                    throw new \Exception('Error: '.$e->getMessage());
                 }
-                $imageRetina = $this->resource->thumb([
-                    'width' => $originalRetinaWidth,
-                    'height' => $heightRetina,
-                    'crop' => $this->getFocus($config),
-                    'format' => $imageType ?? null,
-                ]);
                 $return['widthRetina'] = $originalRetinaWidth;
                 $return['heightRetina'] = $heightRetina;
             }
         }
 
         if ($cropWidth && $cropHeight) {
-            if ($width > $originalWidth) {
-                throw new \Exception('Width is greater than original image width');
-            }
-            if ($height > $originalHeight) {
-                throw new \Exception('Height is greater than original image height');
-            }
-            $image = $this->resource->thumb([
-                'width' => $width,
-                'height' => $height,
-                'crop' => $this->getFocus($config),
-                'format' => $imageType ?? null,
-            ]);
-
-            if ($retina) {
-                $originalRetinaWidth = (int) ($this->resource->dimensions()->width() * $this->retinaDensity);
-                if ($originalRetinaWidth > $originalWidth) {
-                    throw new \Exception('Width is greater than original image width');
-                }
-                $originalRetinaHeight = (int) ($this->resource->dimensions()->height() * $this->retinaDensity);
-                if ($originalRetinaHeight > $originalHeight) {
-                    throw new \Exception('Height is greater than original image height');
-                }
-                $imageRetina = $this->resource->thumb([
-                    'width' => $widthRetina,
-                    'height' => $heightRetina,
+            try {
+                $image = $this->resource->thumb([
+                    'width' => $width,
+                    'height' => $height,
                     'crop' => $this->getFocus($config),
                     'format' => $imageType ?? null,
                 ]);
+            } catch (\Exception $e) {
+                throw new \Exception('Error: '.$e->getMessage());
+            }
+
+            if ($retina) {
+                try {
+                    $imageRetina = $this->resource->thumb([
+                        'width' => $widthRetina,
+                        'height' => $heightRetina,
+                        'crop' => $this->getFocus($config),
+                        'format' => $imageType ?? null,
+                    ]);
+                } catch (\Exception $e) {
+                    throw new \Exception('Error: '.$e->getMessage());
+                }
                 $return['widthRetina'] = $widthRetina;
                 $return['heightRetina'] = $heightRetina;
             }
         }
 
         if (! $cropWidth && ! $cropHeight) {
-            if ($width > $originalWidth) {
-                throw new \Exception('Width is greater than original image width');
-            }
-            if ($height > $originalHeight) {
-                throw new \Exception('Height is greater than original image height');
-            }
-            $image = $this->resource->thumb([
-                'width' => $width,
-                'height' => $height,
-                'crop' => false,
-                'format' => $imageType ?? null,
-                'quality' => $this->config['quality'] ?? '80',
-            ]);
-            $return['width'] = $width;
-            $return['height'] = $height;
-
-            if ($retina) {
-                $originalRetinaWidth = (int) ($this->resource->dimensions()->width() * $this->retinaDensity);
-                if ($originalRetinaWidth > $originalWidth) {
-                    throw new \Exception('Width is greater than original image width');
-                }
-                $originalRetinaHeight = (int) ($this->resource->dimensions()->height() * $this->retinaDensity);
-                if ($originalRetinaHeight > $originalHeight) {
-                    throw new \Exception('Height is greater than original image height');
-                }
-                $imageRetina = $this->resource->thumb([
-                    'width' => $widthRetina,
-                    'height' => $heightRetina,
+            try {
+                $image = $this->resource->thumb([
+                    'width' => $width,
+                    'height' => $height,
                     'crop' => false,
                     'format' => $imageType ?? null,
                     'quality' => $this->config['quality'] ?? '80',
                 ]);
+            } catch (\Exception $e) {
+                throw new \Exception('Error: '.$e->getMessage());
+            }
+            $return['width'] = $width;
+            $return['height'] = $height;
+
+            if ($retina) {
+                try {
+                    $imageRetina = $this->resource->thumb([
+                        'width' => $widthRetina,
+                        'height' => $heightRetina,
+                        'crop' => false,
+                        'format' => $imageType ?? null,
+                        'quality' => $this->config['quality'] ?? '80',
+                    ]);
+                } catch (\Exception $e) {
+                    throw new \Exception('Error: '.$e->getMessage());
+                }
                 $return['widthRetina'] = $widthRetina;
                 $return['heightRetina'] = $heightRetina;
             }
