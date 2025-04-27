@@ -11,7 +11,7 @@ This plugin provides functionality to generate responsive images in your Kirby C
 
 1. **Using Composer**:
    ```sh
-   composer require nerdcel/responsive-images
+   composer require nerdcel/kirby3-responsive-images
     ```
 2. **Manually**: Download the [latest release](https://github.com/nerdcel/kirby3-responsive-images/releases/latest)
     and copy the contents of the into your `site/plugins/responsive-images` folder.
