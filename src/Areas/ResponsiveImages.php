@@ -65,6 +65,20 @@ return function () {
                                             'label' => 'Width',
                                             'type' => 'number',
                                         ],
+                                        'mediaquery' => [
+                                            'label' => 'Media query',
+                                            'type' => 'select',
+                                            'options' => [
+                                                [
+                                                    'value' => 'min-width',
+                                                    'text' => 'min-width',
+                                                ],
+                                                [
+                                                    'value' => 'max-width',
+                                                    'text' => 'max-width',
+                                                ],
+                                            ],
+                                        ],
                                     ],
                                 ],
                                 'settings' => [
