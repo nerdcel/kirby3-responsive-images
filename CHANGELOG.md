@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.5](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.4...v3.1.5) (2025-04-28)
+
+
+### Bug Fixes
+
+* **ResponsiveImages, Tag:** add mediaquery select to areas ([0fce7a0](https://github.com/mokkapps/changelog-generator-demo/commits/0fce7a0d419246813c5dd745aacb39263d09ad9b))
+
 ### [3.1.4](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.3...v3.1.4) (2025-04-02)
 
 
