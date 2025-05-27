@@ -164,7 +164,8 @@ class ResponsiveImages
         string $slug,
         bool $lazy,
         ?string $alt,
-        ?string $responseType = null
+        ?string $responseType = null,
+        int|float $factor = 1
     ): string {
         $cacheComponents = [
             $file->mediaHash(),
@@ -175,6 +176,7 @@ class ResponsiveImages
             $lazy ? 'lazy' : 'eager',
             $alt ?? '',
             $responseType ?? 'html',
+            $factor,
         ];
 
         return md5(implode('|', $cacheComponents));
@@ -191,7 +193,8 @@ class ResponsiveImages
         ?string $classes = null,
         bool $lazy = false,
         ?string $alt = null,
-        ?string $imageType = null
+        ?string $imageType = null,
+        int|float $factor = 1
     ): string {
         // Ensure settings are loaded
         if (empty($this->settings)) {
@@ -217,7 +220,9 @@ class ResponsiveImages
             $classes,
             $lazy,
             $alt,
-            $imageType
+            $imageType,
+            'html',
+            $factor
         );
     }
 
@@ -232,7 +237,8 @@ class ResponsiveImages
         ?string $classes = null,
         bool $lazy = false,
         ?string $alt = null,
-        ?string $imageType = null
+        ?string $imageType = null,
+        int|float $factor = 1
     ): string {
         // Ensure settings are loaded
         if (empty($this->settings)) {
@@ -260,7 +266,8 @@ class ResponsiveImages
             $lazy,
             $alt,
             $imageType,
-            'json'
+            'json',
+            $factor
         );
     }
 
@@ -326,7 +333,8 @@ class ResponsiveImages
         bool $lazy,
         ?string $alt,
         ?string $imageType,
-        ?string $responseType = 'html'
+        ?string $responseType = 'html',
+        int|float $factor = 1
     ): string {
         $options = $this->getOptions();
         $cache = $this->kirby->cache('nerdcel.responsive-images');
@@ -343,7 +351,8 @@ class ResponsiveImages
             $setting['name'],
             $lazy,
             $alt,
-            $responseType
+            $responseType,
+            $factor
         );
 
         // Check cache
@@ -359,7 +368,8 @@ class ResponsiveImages
             $this->settings['breakpoints'],
             $classes,
             $alt,
-            $responseType
+            $responseType,
+            $factor
         );
 
         foreach ($breakpointOptions as $option) {
