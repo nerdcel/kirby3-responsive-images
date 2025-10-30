@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.2](https://github.com/mokkapps/changelog-generator-demo/compare/v3.2.1...v3.2.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* **Tag:** add role attribute for images without alt text ([7be235e](https://github.com/mokkapps/changelog-generator-demo/commits/7be235e9b6c6c92fde97038f24a02f3038aefdff))
+
 ### [3.2.1](https://github.com/mokkapps/changelog-generator-demo/compare/v3.2.0...v3.2.1) (2025-10-30)
 
 
