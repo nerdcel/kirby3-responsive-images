@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.5...v3.2.0) (2025-05-27)
+
+
+### Features
+
+* **Tag, ResponsiveImages:** add factor parameter for responsive image adjustments ([fa24158](https://github.com/mokkapps/changelog-generator-demo/commits/fa24158eb6beb6c6e826185e48ee10716686b412))
+
 ### [3.1.5](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.4...v3.1.5) (2025-04-28)
 
 

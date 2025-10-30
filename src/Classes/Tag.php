@@ -17,6 +17,7 @@ class Tag
     private ?string $classes;
     private ?string $alt;
     private string $responseType;
+    private float $factor = 1;
 
     public function __construct(
         File $file,
@@ -24,7 +25,8 @@ class Tag
         array $breakpoints,
         string $classes = null,
         $alt = null,
-        $responseType = 'html'
+        $responseType = 'html',
+        $factor = 1
     ) {
         $this->source = [];
         $this->img = '';
@@ -34,6 +36,7 @@ class Tag
         $this->classes = $classes;
         $this->alt = $alt;
         $this->responseType = $responseType;
+        $this->factor = (float) $factor;
     }
 
     /**
@@ -106,7 +109,7 @@ class Tag
                     'loading' => $lazyOption,
                 ];
             } else {
-                $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'" title="'.($this->alt ?: $imgSet['image']->alt()->value()).'" loading="'.$lazyOption.'"/>';
+                $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'"' . ($this->alt ?: $imgSet['image']->alt()->value())?: ' aria-hidden="true"' . 'loading="'.$lazyOption.'"/>';
             }
         } catch (\Exception $e) {
             throw new \Exception('Error: '.$e->getMessage());
@@ -198,6 +201,11 @@ class Tag
      */
     public function adjust(array $config, bool $retina, string $imageType = null): array
     {
+        // If config width is greater or equal 640, use the factor from the constructor and multiply it with the width, also for height to keep the aspect ratio
+        if (isset($config['width']) && (int) $config['width'] >= 640) {
+            $config['width'] = (int) ((int) $config['width'] * $this->factor);
+            $config['height'] = (int) ((int) $config['height'] * $this->factor);
+        }
         $width = (int) (isset($config['width']) && ! empty($config['width']) ? $config['width'] : $this->config['defaultWidth']);
         $height = (int) (isset($config['height']) && ! empty($config['height']) ? $config['height'] : $this->resource->dimensions()->height() / $this->resource->dimensions()->width() * $width);
         $widthRetina = (int) ((isset($config['width']) && ! empty($config['width']) ? $config['width'] : $this->config['defaultWidth']) * $this->retinaDensity);
