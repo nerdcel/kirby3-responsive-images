@@ -109,7 +109,7 @@ class Tag
                     'loading' => $lazyOption,
                 ];
             } else {
-                $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'" title="'.($this->alt ?: $imgSet['image']->alt()->value()).'" loading="'.$lazyOption.'"/>';
+                $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'"' . ($this->alt ?: $imgSet['image']->alt()->value())?: ' aria-hidden="true"' . 'loading="'.$lazyOption.'"/>';
             }
         } catch (\Exception $e) {
             throw new \Exception('Error: '.$e->getMessage());
