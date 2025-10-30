@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.1](https://github.com/mokkapps/changelog-generator-demo/compare/v3.2.0...v3.2.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* **Tag:** add aria-hidden attribute for images without alt text ([b6d0a9a](https://github.com/mokkapps/changelog-generator-demo/commits/b6d0a9a942708f39637817ac4024d1a96fe8776c))
+
 ## [3.2.0](https://github.com/mokkapps/changelog-generator-demo/compare/v3.1.5...v3.2.0) (2025-05-27)
 
 
