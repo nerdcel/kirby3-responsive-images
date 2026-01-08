@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.4.0](https://github.com/mokkapps/changelog-generator-demo/compare/v3.3.0...v3.4.0) (2026-01-08)
+
+
+### Features
+
+* update PHP version constraint and dependencies in composer files ([ed9f18b](https://github.com/mokkapps/changelog-generator-demo/commits/ed9f18bd4f323138e64aa800abd1e491929e1515))
+
 ## [3.3.0](https://github.com/mokkapps/changelog-generator-demo/compare/v3.2.2...v3.3.0) (2025-12-05)
 
 
