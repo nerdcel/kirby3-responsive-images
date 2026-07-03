@@ -11,12 +11,13 @@ if (!function_exists('responsiveImage')) {
      * @param  File  $file
      * @param  string|null  $classes
      * @param  bool  $lazy
-     * @param  null  $alt
+     * @param  string|null  $alt
+     * @param  string|null  $imageType
+     * @param  string  $responseType
      *
      * @return string
-     * @throws Exception
      */
-    function responsiveImage(string $responsiveImageSlug, File $file, string $classes = null, $lazy = false, $alt = null, $imageType = null, $responseType = 'html'): string
+    function responsiveImage(string $responsiveImageSlug, File $file, ?string $classes = null, bool $lazy = false, ?string $alt = null, ?string $imageType = null, string $responseType = 'html'): string
     {
         try {
             $ext = $file->extension();

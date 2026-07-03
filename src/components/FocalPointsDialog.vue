@@ -14,8 +14,8 @@
       <k-column style="--width: 4/12">
         <div class="nerdcel-focal-points__details">
           <k-field input="breakpointOptions"
-                   :label="$t('nerdcel.responsove-images.focalpoints.label-breakpoints')"
-                   :help="$t('nerdcel.responsove-images.focalpoints.help-breakpoints')">
+                   :label="$t('nerdcel.responsive-images.focalpoints.label-breakpoints')"
+                   :help="$t('nerdcel.responsive-images.focalpoints.help-breakpoints')">
             <k-select-input
               id="breakpointOptions"
               name="select"
@@ -52,8 +52,8 @@ export default {
 
   props: {
     model: {
-      type: Array,
-      default: () => [],
+        type: Object,
+        default: () => ({}),
     },
     focalModel: {
       type: Object,

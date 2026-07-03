@@ -8,6 +8,7 @@ use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\User;
 use Kirby\Filesystem\F;
+use Kirby\Toolkit\A;
 use Kirby\Toolkit\Config;
 use Psr\Log\LoggerInterface;
 
@@ -180,6 +181,53 @@ class ResponsiveImages
         ];
 
         return md5(implode('|', $cacheComponents));
+    }
+
+    private function getBreakpointName(string $name): string
+    {
+        $breakpoints = $this->settings['breakpoints'] ?? [];
+
+        foreach ($breakpoints as $bp) {
+            if ($bp['name'] === $name) {
+                return '**' . ($bp['name'] ?? $name) . '**' . ' ('.$bp['width'].'px)';
+            }
+        }
+        return $name;
+    }
+
+    public function getSlugConfig(?string $slug = null): ?string
+    {
+        // Ensure settings are loaded
+        if (empty($this->settings)) {
+            $this->settings = $this->loadConfig();
+        }
+
+        // Find specific image settings
+        $imageSetting = $this->findImageSettings($slug);
+
+        if (! $imageSetting) {
+            return null;
+        }
+
+        try {
+            $output = "### Responsive Image Settings for Slug: `{$slug}`".PHP_EOL.PHP_EOL;
+            $output .= '| Viewport | Width | Height | Retina |'.PHP_EOL;
+            $output .= '|---------|---------|----------|------------|'.PHP_EOL;
+            $output .= implode('', array_map(function ($option) {
+                $breakpoint = $this->getBreakpointName($option['breakpoint'] ?? '-');
+                $width = $option['width'] ?? '-';
+                $height = $option['height'] ?? '-';
+                $retina = isset($option['retina']) ? ($option['retina'] ? 'Yes' : 'No') : '-';
+
+                return "| {$breakpoint} | {$width} | {$height} | {$retina} |".PHP_EOL;
+            }, $imageSetting['breakpointoptions'] ?? []));
+
+            return $output;
+        } catch (Exception $e) {
+            $this->logError("Error generating slug config: {$e->getMessage()}");
+
+            return $e->getMessage();
+        }
     }
 
     /**
