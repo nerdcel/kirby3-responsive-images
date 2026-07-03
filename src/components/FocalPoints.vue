@@ -1,7 +1,7 @@
 <template>
     <div>
         <template v-if="fileType === 'image'">
-            <k-field :label="label" :help="help">
+            <k-field :name="name" :label="label" :help="help" :input="value" :endpoints="endpoints" type="focalpoints">
                 <nerdcel-focal-points-dialog :model="fieldModel" :breakpoints="breakpoints" :focal-model="value"
                                              @input="updateModel($event)"></nerdcel-focal-points-dialog>
             </k-field>
@@ -15,6 +15,14 @@
 <script>
 export default {
     props: {
+        name: {
+            type: String,
+            default: 'focalpoints',
+        },
+        endpoints: {
+            type: Object,
+            default: () => ({}),
+        },
         focalpoints: {
             type: Array,
             default: () => [],
@@ -28,8 +36,8 @@ export default {
             default: '',
         },
         fieldModel: {
-            type: Array,
-            default: () => [],
+            type: Object,
+            default: () => ({}),
         },
         breakpoints: {
             type: Array,
@@ -46,7 +54,7 @@ export default {
     },
     methods: {
         updateModel (value) {
-            this.$emit('input', value);
+            this.$emit('input', JSON.stringify(value));
         },
     },
 };

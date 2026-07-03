@@ -23,10 +23,10 @@ class Tag
         File $file,
         array $config,
         array $breakpoints,
-        string $classes = null,
-        $alt = null,
-        $responseType = 'html',
-        $factor = 1
+        ?string $classes = null,
+        ?string $alt = null,
+        string $responseType = 'html',
+        int|float $factor = 1
     ) {
         $this->source = [];
         $this->img = '';
@@ -92,7 +92,7 @@ class Tag
      *
      * @return void
      */
-    public function addImg(array $config, bool $lazy, string $imageType = null): void
+    public function addImg(array $config, bool $lazy, ?string $imageType = null): void
     {
         try {
             $lazyOption = $lazy ? 'lazy' : 'eager';
@@ -125,7 +125,7 @@ class Tag
      * @return void
      * @throws \JsonException
      */
-    public function addSource(array $config, string $imageType = null): void
+    public function addSource(array $config, ?string $imageType = null): void
     {
         try {
             $imgSet = $this->adjust($config, $config['retina'], $imageType);
@@ -178,7 +178,7 @@ class Tag
      *
      * @return bool|string
      */
-    private function getFocus($config)
+    private function getFocus(array $config): bool|string
     {
         $focalPoints = $this->resource->focalpoints()->toBreakpointFocal();
 
@@ -199,7 +199,7 @@ class Tag
      * @return array
      * @throws \Exception
      */
-    public function adjust(array $config, bool $retina, string $imageType = null): array
+    public function adjust(array $config, bool $retina, ?string $imageType = null): array
     {
         // If config width is greater or equal 640, use the factor from the constructor and multiply it with the width, also for height to keep the aspect ratio
         if (isset($config['width']) && (int) $config['width'] >= 640) {

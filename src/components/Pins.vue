@@ -13,8 +13,8 @@ export default {
   },
   props: {
     pins: {
-      type: Array,
-      default: () => []
+      type: Object,
+      default: () => ({}),
     },
   },
 }

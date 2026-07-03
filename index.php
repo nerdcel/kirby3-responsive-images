@@ -31,7 +31,7 @@ Kirby::plugin('nerdcel/responsive-images', [
     'fieldMethods' => require __DIR__.'/src/fieldMethods.php',
 
     'siteMethods' => [
-        'getResponsiveImagesSetting' => function ($slug = null) {
+        'getResponsiveImagesSetting' => function (?string $slug = null) {
             if ($slug) {
                 return (new ResponsiveImages(kirby()))->getSlugConfig($slug);
             }

@@ -183,7 +183,7 @@ class ResponsiveImages
         return md5(implode('|', $cacheComponents));
     }
 
-    private function getBreakpointName($name): string
+    private function getBreakpointName(string $name): string
     {
         $breakpoints = $this->settings['breakpoints'] ?? [];
 
@@ -195,7 +195,7 @@ class ResponsiveImages
         return $name;
     }
 
-    public function getSlugConfig($slug = null)
+    public function getSlugConfig(?string $slug = null): ?string
     {
         // Ensure settings are loaded
         if (empty($this->settings)) {
