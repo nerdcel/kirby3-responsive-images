@@ -17,7 +17,7 @@ if (!function_exists('responsiveImage')) {
      *
      * @return string
      */
-    function responsiveImage(string $responsiveImageSlug, File $file, string|null $classes, bool $lazy, string|null $alt, string|null $imageType, string $responseType = 'html'): string
+    function responsiveImage(string $responsiveImageSlug, File $file, ?string $classes = null, bool $lazy = false, ?string $alt = null, ?string $imageType = null, string $responseType = 'html'): string
     {
         try {
             $ext = $file->extension();
