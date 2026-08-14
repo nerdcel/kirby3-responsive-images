@@ -9,5 +9,12 @@ return [
     'allowedRoles' => [
         'admin',
     ],
-    'cropDriver' => null
+    'cropDriver' => null,
+    'aiHint' => [
+        'text' => 'AI generated image',
+        'position' => 'bottom-right',
+        'color' => '#ffffff',
+        'size' => 'medium',
+        'font' => null, // absolute path to a .ttf font used to stamp the hint into the image; falls back to common system fonts, then to a GD bitmap font
+    ],
 ];

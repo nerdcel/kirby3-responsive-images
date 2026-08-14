@@ -50,6 +50,93 @@ class ResponsiveImages
     }
 
     /**
+     * Legacy size enum (used before the "size" setting became a numeric
+     * percentage of the image height), kept for backwards compatibility
+     * with existing blueprints/content still using `small`/`medium`/`large`.
+     */
+    private const LEGACY_SIZES = [
+        'small' => 2.5,
+        'medium' => 5,
+        'large' => 8,
+    ];
+
+    /**
+     * Normalizes a size value (numeric percentage or legacy string enum)
+     * into a valid float percentage, falling back to $default when the
+     * value is missing or not resolvable.
+     */
+    public static function normalizeSize(mixed $size, float $default = 5): float
+    {
+        if (is_string($size) && isset(self::LEGACY_SIZES[$size])) {
+            $size = self::LEGACY_SIZES[$size];
+        }
+
+        if (! is_numeric($size)) {
+            $size = $default;
+        }
+
+        return max(1, min(15, (float) $size));
+    }
+
+    /**
+     * Normalizes a margin value (the distance, in em, between the hint's
+     * background box and the edge of the image), falling back to
+     * $default when the value is missing or not resolvable.
+     */
+    public static function normalizeMargin(mixed $margin, float $default = 0.6): float
+    {
+        if (! is_numeric($margin)) {
+            $margin = $default;
+        }
+
+        return max(0, min(5, (float) $margin));
+    }
+
+    /**
+     * Normalizes a padding value (the space, in em, between the hint text
+     * and the edge of its own backdrop box), falling back to $default
+     * when the value is missing or not resolvable.
+     */
+    public static function normalizePadding(mixed $padding, float $default = 0.5): float
+    {
+        if (! is_numeric($padding)) {
+            $padding = $default;
+        }
+
+        return max(0, min(2, (float) $padding));
+    }
+
+    /**
+     * Picks a black or white backdrop colour depending on the perceived
+     * brightness of the given hex font colour, so the semi-transparent
+     * background always provides good contrast against the text (a light
+     * font gets a dark backdrop, a dark font gets a light backdrop).
+     *
+     * @return array{0: int, 1: int, 2: int}
+     */
+    public static function contrastBackdropRgb(string $color): array
+    {
+        $hex = ltrim($color, '#');
+
+        if (strlen($hex) === 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+        }
+
+        if (strlen($hex) !== 6 || ! ctype_xdigit($hex)) {
+            return [0, 0, 0];
+        }
+
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+
+        // Perceived brightness (ITU-R BT.601 luma)
+        $brightness = ($r * 299 + $g * 587 + $b * 114) / 1000;
+
+        return $brightness > 140 ? [0, 0, 0] : [255, 255, 255];
+    }
+
+    /**
      * Retrieve configuration options with sensible defaults
      */
     private function getOptions(): array
@@ -61,7 +148,93 @@ class ResponsiveImages
             'defaultWidth' => 1024,
             'allowedRoles' => ['admin'],
             'supportedFormats' => ['webp', 'avif', 'jpg', 'png'],
+            'aiHint' => [
+                'text' => 'AI generated image',
+                'position' => 'bottom-right',
+                'color' => '#ffffff',
+                'size' => 5,
+                'opacity' => 100,
+                'margin' => 0.6,
+                'padding' => 0.5,
+                'font' => null,
+            ],
         ]);
+    }
+
+    /**
+     * Resolve the AI hint settings for a file, merging the per-file
+     * overrides (set via the "aihint" blueprint field) with the plugin's
+     * configured defaults. Returns null when the hint is not enabled.
+     *
+     * Public so it can also be reused by other panel-facing fields (e.g.
+     * the "focalpoints" field, to render an accurate live preview).
+     */
+    public function getAiHintData(File $file): ?array
+    {
+        try {
+            $aiHint = $file->aihint()->toAiHint();
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        if (! is_array($aiHint) || empty($aiHint['enabled'])) {
+            return null;
+        }
+
+        $defaults = $this->getOptions()['aiHint'] ?? [];
+
+        return [
+            'text' => $aiHint['text'] ?? $defaults['text'] ?? 'AI generated image',
+            'position' => $aiHint['position'] ?? $defaults['position'] ?? 'bottom-right',
+            'color' => $aiHint['color'] ?? $defaults['color'] ?? '#ffffff',
+            'size' => self::normalizeSize($aiHint['size'] ?? $defaults['size'] ?? 5),
+            'opacity' => $aiHint['opacity'] ?? $defaults['opacity'] ?? 100,
+            'margin' => self::normalizeMargin($aiHint['margin'] ?? $defaults['margin'] ?? 0.6),
+            'padding' => self::normalizePadding($aiHint['padding'] ?? $defaults['padding'] ?? 0.5),
+        ];
+    }
+
+    /**
+     * Returns the URL of a "stamped" copy of the given thumbnail with the
+     * AI hint text burned directly into the pixel data (plus basic IPTC
+     * metadata for JPEGs). This guarantees the hint survives even when the
+     * image is downloaded or reused outside of the page, satisfying AI
+     * content labelling obligations. Falls back to the original URL when
+     * stamping is not possible (e.g. unreadable file, unsupported format).
+     *
+     * The stamped copy is cached next to the original thumbnail and keyed
+     * by a hash of the aiHint settings, so it's regenerated whenever the
+     * hint text/position/color/size changes or the source thumb changes.
+     */
+    private function stampedUrl(mixed $image, ?array $aiHint): string
+    {
+        if (! $image) {
+            return '';
+        }
+
+        // Kirby generates thumbnails lazily (usually on first HTTP request
+        // to the media route). Force creation now so there is a file on
+        // disk we can actually stamp.
+        if (method_exists($image, 'exists') && method_exists($image, 'save') && ! $image->exists()) {
+            $image->save();
+        }
+
+        $root = $image->root();
+
+        if (! $aiHint || ! $root || ! file_exists($root)) {
+            return (string) $image->url();
+        }
+
+        $suffix = '-ai-'.substr(md5(ImageStamper::VERSION.json_encode($aiHint)), 0, 8);
+        $destRoot = preg_replace('/(\.[^.\/]+)$/', $suffix.'$1', $root);
+
+        if (! file_exists($destRoot) || filemtime($root) > filemtime($destRoot)) {
+            if (! ImageStamper::stamp($root, $destRoot, $aiHint)) {
+                return (string) $image->url();
+            }
+        }
+
+        return preg_replace('/(\.[^.\/]+)$/', $suffix.'$1', (string) $image->url());
     }
 
     /**
@@ -166,7 +339,8 @@ class ResponsiveImages
         bool $lazy,
         ?string $alt,
         ?string $responseType = null,
-        int|float $factor = 1
+        int|float $factor = 1,
+        ?array $aiHint = null
     ): string {
         $cacheComponents = [
             $file->mediaHash(),
@@ -178,6 +352,7 @@ class ResponsiveImages
             $alt ?? '',
             $responseType ?? 'html',
             $factor,
+            json_encode($aiHint, JSON_THROW_ON_ERROR),
         ];
 
         return md5(implode('|', $cacheComponents));
@@ -343,31 +518,34 @@ class ResponsiveImages
         ?string $responseType = 'html'
     ): string {
         $options = $this->getOptions();
+        $aiHint = $this->getAiHintData($file);
+
+        $image = Cropper::crop($file, [
+            'width' => $options['defaultWidth'],
+            'crop' => false,
+            'format' => $imageType,
+        ]);
+        $src = $this->stampedUrl($image, $aiHint);
 
         if ($responseType === 'json') {
             return json_encode([
-                'src' => Cropper::crop($file, [
-                    'width' => $options['defaultWidth'],
-                    'crop' => false,
-                    'format' => $imageType,
-                ])->url(),
+                'src' => $src,
                 'class' => $classes ?? '',
                 'lazy' => $lazy,
                 'alt' => $alt,
+                'aiHint' => $aiHint,
             ], JSON_THROW_ON_ERROR);
         }
 
-        return sprintf(
+        $markup = sprintf(
             '<img src="%s" class="%s" %s %s/>',
-            Cropper::crop($file, [
-                'width' => $options['defaultWidth'],
-                'crop' => false,
-                'format' => $imageType,
-            ])->url(),
+            $src,
             $classes ?? '',
             $lazy ? 'loading="lazy"' : '',
             $alt ? "alt=\"{$alt}\"" : ''
         );
+
+        return $markup;
     }
 
     /**
@@ -386,6 +564,7 @@ class ResponsiveImages
     ): string {
         $options = $this->getOptions();
         $cache = $this->kirby->cache('nerdcel.responsive-images');
+        $aiHint = $this->getAiHintData($file);
 
         // Sort breakpoints
         $breakpointOptions = $setting['breakpointoptions'] ?? [];
@@ -400,7 +579,8 @@ class ResponsiveImages
             $lazy,
             $alt,
             $responseType,
-            $factor
+            $factor,
+            $aiHint
         );
 
         // Check cache
@@ -417,7 +597,8 @@ class ResponsiveImages
             $classes,
             $alt,
             $responseType,
-            $factor
+            $factor,
+            $aiHint
         );
 
         foreach ($breakpointOptions as $option) {
@@ -442,7 +623,9 @@ class ResponsiveImages
             if ($responseType === 'html') {
                 $generatedImage = $responsiveTag->writeTag();
             } else {
-                $generatedImage = json_encode($responsiveTag->writeTagObject(), JSON_THROW_ON_ERROR);
+                $tagObject = $responsiveTag->writeTagObject();
+                $tagObject['aiHint'] = $aiHint;
+                $generatedImage = json_encode($tagObject, JSON_THROW_ON_ERROR);
             }
 
             // Cache the result
@@ -461,15 +644,18 @@ class ResponsiveImages
                     'alt' => $alt,
                 ],
                 'source' => [],
+                'aiHint' => $aiHint,
             ], JSON_THROW_ON_ERROR);
         }
 
-        return sprintf(
+        $markup = sprintf(
             '<div class="%s"><img src="%s" %s %s/></div>',
             $classes ?? '',
             $file->url(),
             $lazy ? 'loading="lazy"' : '',
             $alt ? "alt=\"{$alt}\"" : ''
         );
+
+        return $markup;
     }
 }
