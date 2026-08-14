@@ -3,6 +3,7 @@
         <template v-if="fileType === 'image'">
             <k-field :name="name" :label="label" :help="help" :input="value" :endpoints="endpoints" type="focalpoints">
                 <nerdcel-focal-points-dialog :model="fieldModel" :breakpoints="breakpoints" :focal-model="value"
+                                             :ai-hint="aiHint" :image-width="imageWidth" :image-height="imageHeight"
                                              @input="updateModel($event)"></nerdcel-focal-points-dialog>
             </k-field>
         </template>
@@ -47,6 +48,18 @@ export default {
             type: String,
             default: '',
         },
+        aiHint: {
+            type: Object,
+            default: null,
+        },
+        imageWidth: {
+            type: Number,
+            default: null,
+        },
+        imageHeight: {
+            type: Number,
+            default: null,
+        },
         value: {
             type: Object,
             default: () => ({}),
@@ -54,7 +67,7 @@ export default {
     },
     methods: {
         updateModel (value) {
-            this.$emit('input', JSON.stringify(value));
+            this.$emit('input', value);
         },
     },
 };

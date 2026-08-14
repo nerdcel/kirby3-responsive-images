@@ -3,6 +3,7 @@ import FocalPoints from './components/FocalPoints.vue';
 import FocalPointsDialog from './components/FocalPointsDialog.vue';
 import Pins from './components/Pins.vue';
 import Restricted from './components/Restricted.vue';
+import AiHint from './components/AiHint.vue';
 
 window.panel.plugin('nerdcel/responsive-images', {
   components: {
@@ -14,5 +15,6 @@ window.panel.plugin('nerdcel/responsive-images', {
 
   fields: {
     'focalpoints': FocalPoints,
+    'aihint': AiHint,
   }
 });

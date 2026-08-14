@@ -4,6 +4,7 @@ namespace Nerdcel\ResponsiveImages;
 
 use Kirby\Cms\File;
 use Nerdcel\ResponsiveImages\Cropper;
+use Nerdcel\ResponsiveImages\ImageStamper;
 
 class Tag
 {
@@ -18,6 +19,7 @@ class Tag
     private ?string $alt;
     private string $responseType;
     private float $factor = 1;
+    private ?array $aiHint = null;
 
     public function __construct(
         File $file,
@@ -26,7 +28,8 @@ class Tag
         ?string $classes = null,
         ?string $alt = null,
         string $responseType = 'html',
-        int|float $factor = 1
+        int|float $factor = 1,
+        ?array $aiHint = null
     ) {
         $this->source = [];
         $this->img = '';
@@ -37,6 +40,43 @@ class Tag
         $this->alt = $alt;
         $this->responseType = $responseType;
         $this->factor = (float) $factor;
+        $this->aiHint = $aiHint;
+    }
+
+    /**
+     * Returns the URL of the image, burning the AI hint text directly into
+     * the pixel data (plus IPTC metadata for JPEGs) when the hint is
+     * enabled for this file. Falls back to the plain URL otherwise.
+     */
+    private function stampedUrl($image): string
+    {
+        if (! $image) {
+            return '';
+        }
+
+        // Kirby generates thumbnails lazily (usually on first HTTP request
+        // to the media route). Force creation now so there is a file on
+        // disk we can actually stamp.
+        if (method_exists($image, 'exists') && method_exists($image, 'save') && ! $image->exists()) {
+            $image->save();
+        }
+
+        $root = $image->root();
+
+        if (! $this->aiHint || ! $root || ! file_exists($root)) {
+            return (string) $image->url();
+        }
+
+        $suffix = '-ai-'.substr(md5(json_encode($this->aiHint)), 0, 8);
+        $destRoot = preg_replace('/(\.[^.\/]+)$/', $suffix.'$1', $root);
+
+        if (! file_exists($destRoot) || filemtime($root) > filemtime($destRoot)) {
+            if (! ImageStamper::stamp($root, $destRoot, $this->aiHint)) {
+                return (string) $image->url();
+            }
+        }
+
+        return preg_replace('/(\.[^.\/]+)$/', $suffix.'$1', (string) $image->url());
     }
 
     /**
@@ -100,7 +140,7 @@ class Tag
 
             if ($this->responseType === 'json') {
                 $this->imgObj = [
-                    'src' => $imgSet['image']->url(),
+                    'src' => $this->stampedUrl($imgSet['image']),
                     'width' => $imgSet['image']->width(),
                     'height' => $imgSet['image']->height(),
                     'class' => $this->classes,
@@ -109,7 +149,7 @@ class Tag
                 ];
             } else {
                 $aria = $this->alt ? ' role="img"' : ' aria-hidden="true" ';
-                $this->img = '<img src="'.$imgSet['image']->url().'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'"' . $aria . 'loading="'.$lazyOption.'"/>';
+                $this->img = '<img src="'.$this->stampedUrl($imgSet['image']).'" width="'.$imgSet['image']->width().'" height="'.$imgSet['image']->height().'" class="'.$this->classes.'" alt="'.($this->alt ?: $imgSet['image']->alt()->value()).'"' . $aria . 'loading="'.$lazyOption.'"/>';
             }
         } catch (\Exception $e) {
             throw new \Exception('Error: '.$e->getMessage());
@@ -139,14 +179,14 @@ class Tag
             if ($config['retina'] && $imgSet['imageRetina']) {
                 if ($this->responseType === 'json') {
                     $this->source[$mediaqueryWidth]['retina'] = [
-                        'src' => $imgSet['imageRetina']->url(),
+                        'src' => $this->stampedUrl($imgSet['imageRetina']),
                         'width' => $imgSet['imageRetina']->width(),
                         'height' => $imgSet['imageRetina']->height(),
                         'media' => '('.$mediaquery.': '.$mediaqueryWidth.'px) and (-webkit-min-device-pixel-ratio: '.$this->retinaDensity.'),
                            ('.$mediaquery.': '.$mediaqueryWidth.'px) and (min-device-pixel-ratio: '.$this->retinaDensity.')',
                     ];
                 } else {
-                    $this->source[$mediaqueryWidth]['retina'] = '<source srcset="'.$imgSet['imageRetina']->url().'"
+                    $this->source[$mediaqueryWidth]['retina'] = '<source srcset="'.$this->stampedUrl($imgSet['imageRetina']).'"
                            width="'.$imgSet['imageRetina']->width().'"
                            height="'.$imgSet['imageRetina']->height().'"
                            media="('.$mediaquery.': '.$mediaqueryWidth.'px) and (-webkit-min-device-pixel-ratio: '.$this->retinaDensity.'),
@@ -156,13 +196,13 @@ class Tag
 
             if ($this->responseType === 'json') {
                 $this->source[$mediaqueryWidth]['standard'] = [
-                    'src' => $imgSet['image']->url(),
+                    'src' => $this->stampedUrl($imgSet['image']),
                     'width' => $imgSet['image']->width(),
                     'height' => $imgSet['image']->height(),
                     'media' => '('.$mediaquery.': '.$mediaqueryWidth.'px)',
                 ];
             } else {
-                $this->source[$mediaqueryWidth]['standard'] = '<source srcset="'.$imgSet['image']->url().'"
+                $this->source[$mediaqueryWidth]['standard'] = '<source srcset="'.$this->stampedUrl($imgSet['image']).'"
                     width="'.$imgSet['image']->width().'"
                     height="'.$imgSet['image']->height().'"
                     media="('.$mediaquery.': '.$mediaqueryWidth.'px)"/>';

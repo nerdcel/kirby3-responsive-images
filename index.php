@@ -26,6 +26,7 @@ Kirby::plugin('nerdcel/responsive-images', [
 
     'fields' => [
         'focalpoints' => require __DIR__.'/src/Fields/FocalPoints.php',
+        'aihint' => require __DIR__.'/src/Fields/AiHint.php',
     ],
 
     'fieldMethods' => require __DIR__.'/src/fieldMethods.php',

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/mokkapps/changelog-generator-demo/compare/v3.4.1...v4.0.0) (2026-08-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* The previous frontend HTML overlay
+(`<span class="nerdcel-ai-hint ...">`) and its stylesheet
+(assets/css/ai-hint.css) have been removed. The AI hint is now panel-only and
+burned directly into the generated image; no frontend markup/CSS include is
+required or emitted anymore.
+
+### Features
+
+* add AI-generated image hint with panel preview, stamping and metadata ([1d37a4c](https://github.com/mokkapps/changelog-generator-demo/commits/1d37a4c69962441771c8ad86c747e3ea1200d08e))
+* update FocalPoints component to support new props and improve functionality ([004db03](https://github.com/mokkapps/changelog-generator-demo/commits/004db0300fd8fad66d0f02d73486abeeb4e6d99b))
+* update responsiveImage function parameters for improved default values and null handling ([b65514b](https://github.com/mokkapps/changelog-generator-demo/commits/b65514b4a14dfc5ff4c83379e850b2ae884352b6))
+
 ## [3.4.0](https://github.com/mokkapps/changelog-generator-demo/compare/v3.3.0...v3.4.0) (2026-01-08)
 
 
